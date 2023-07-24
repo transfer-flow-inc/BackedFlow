@@ -13,7 +13,7 @@ services:
     ports:
       - "6033:3306"
     volumes:
-      - dbdata:/var/lib/mysql-transfer-flow
+      - dbdata:/var/lib/mysql
   graphite:
     image: graphiteapp/graphite-statsd
     container_name: graphite
