@@ -37,7 +37,7 @@ jobs:
           TRANSFERFLOW_API_GOOGLE_CLIENT_ID: test
           TRANSFERFLOW_API_TOKEN_SECRET_KEY: ${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }}
           SPRING_PROFILE: testing
-        run: ./mvnw clean package
+        run: ./mvnw --no-transfer-progress clean package
 
       - name: "Start Spring Boot application"
         env:
@@ -49,7 +49,10 @@ jobs:
           SPRING_PROFILE: testing
         run: |
           nohup java -jar target/*.jar --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing &
+      
 
+      - name: Wait for Spring Boot application to start
+        run: sleep 60
 
       - name: Check if port 80 is open
         uses: nrukavkov/open-ports-check-action@v1
