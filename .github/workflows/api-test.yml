@@ -39,11 +39,6 @@ jobs:
           SPRING_PROFILE: testing
         run: ./mvnw clean package
 
-      - name: Start MySQL service
-        run: |
-          sudo service mysql start
-          sleep 10
-
       - name: "Start Spring Boot application"
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true
