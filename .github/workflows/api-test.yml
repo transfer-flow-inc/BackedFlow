@@ -1,8 +1,5 @@
 name: "Build the app then test API endpoints tests with Newman Tests"
-on:
-  push:
-    branches:
-      - main
+on: [pull_request]
 
 jobs:
   build-and-test:
@@ -33,12 +30,14 @@ jobs:
           distribution: adopt
 
       - name: Build application
-        run: ./mvnw clean package
-
-      - name: Start MySQL service
-        run: |
-          sudo service mysql start
-          sleep 10
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          TRANSFERFLOW_API_GOOGLE_CLIENT_ID: test
+          TRANSFERFLOW_API_TOKEN_SECRET_KEY: ${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }}
+          SPRING_PROFILE: testing
+        run: ./mvnw --no-transfer-progress clean package
 
       - name: "Start Spring Boot application"
         env:
@@ -48,8 +47,12 @@ jobs:
           TRANSFERFLOW_API_GOOGLE_CLIENT_ID: test
           TRANSFERFLOW_API_TOKEN_SECRET_KEY: ${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }}
           SPRING_PROFILE: testing
-        run: java -jar target/*.jar
-        background: true
+        run: |
+          nohup java -jar target/*.jar --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing &
+      
+
+      - name: Wait for Spring Boot application to start
+        run: sleep 15
 
       - name: Check if port 80 is open
         uses: nrukavkov/open-ports-check-action@v1
@@ -61,5 +64,5 @@ jobs:
           reverse: 'false'
 
       - name: Run API Tests
-        run: newman run ./src/test/postman/collection.json -e ./src/test/env.json
+        run: newman run ./src/test/postman/collection.json -e ./src/test/postman/env.json
 
