@@ -64,5 +64,5 @@ jobs:
           reverse: 'false'
 
       - name: Run API Tests
-        run: newman run ./src/test/postman/collection.json -e ./src/test/env.json
+        run: newman run ./src/test/postman/collection.json -e ./src/test/postman/fixed aenv.json
 
