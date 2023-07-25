@@ -32,4 +32,7 @@ public class Folder {
     @ElementCollection
     private List<String> recipientsEmails;
     private String url;
+
+    @OneToMany
+    private List<File> fileList;
 }

@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities.user;
 
+import fr.nil.backedflow.entities.Folder;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,9 @@ public class User implements UserDetails {
 
     private String avatar;
     private boolean isAccountVerified;
+
+    @OneToMany
+    private List<Folder> userFolders;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
