@@ -1,9 +1,6 @@
-package fr.nil.backedflow.entities;
+package fr.nil.backedflow.entities.plan;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,7 +19,10 @@ public class Plan {
     @Id
     @GeneratedValue()
     private UUID id;
-    private String name;
+
+    @Enumerated(EnumType.STRING)
+    private PlanType name;
+
     private int price;
     private int maxUploadCapacity;
     private String description;
