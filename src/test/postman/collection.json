@@ -1,0 +1,139 @@
+{
+	"info": {
+		"_postman_id": "f32d7229-9e56-49b3-a619-86ddee57fadc",
+		"name": "TransferFlow API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24752067",
+		"_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&creator=24752067&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Register a new User into the Database",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"    pm.test(\"Response status code is 200\", function () {",
+									"        pm.expect(pm.response.code).to.equal(200);",
+									"    });",
+									"",
+									"    pm.test(\"Response contains a token\", function () {",
+									"        pm.expect(pm.response.json()).to.have.property('token').that.is.a('string');",
+									"    });",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var email = \"test\" + Math.floor(Math.random() * 10000) + \"@example.com\";",
+									"var password = \"password123\";",
+									"var firstName = \"John\";",
+									"var lastName = \"Doe\";",
+									"",
+									"    pm.environment.set(\"email\", email);",
+									"    pm.environment.set(\"password\", password);",
+									"    pm.environment.set(\"firstName\", firstName);",
+									"    pm.environment.set(\"lastName\", lastName);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Nilq\",\n    \"lastName\": \"MALHOMMEq\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ baseURL}}/api/v1/auth/register",
+							"protocol": "http",
+							"host": [
+								"{{ baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Request  JWT token from the backend",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains a token\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('token');",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{ baseURL}}/api/v1/auth/authenticate",
+							"protocol": "http",
+							"host": [
+								"{{ baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
