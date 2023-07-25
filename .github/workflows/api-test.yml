@@ -1,0 +1,65 @@
+name: "Build the app then test API endpoints tests with Newman Tests"
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: test-db
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '18'
+          distribution: adopt
+
+      - name: Build application
+        run: ./mvnw clean package
+
+      - name: Start MySQL service
+        run: |
+          sudo service mysql start
+          sleep 10
+
+      - name: "Start Spring Boot application"
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          TRANSFERFLOW_API_GOOGLE_CLIENT_ID: test
+          TRANSFERFLOW_API_TOKEN_SECRET_KEY: ${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }}
+          SPRING_PROFILE: testing
+        run: java -jar target/*.jar
+        background: true
+
+      - name: Check if port 80 is open
+        uses: nrukavkov/open-ports-check-action@v1
+        with:
+          port: 8080
+          host: 'localhost'
+          pause: 1000
+          needFail: 'true'
+          reverse: 'false'
+
+      - name: Run API Tests
+        run: newman run ./src/test/postman/collection.json -e ./src/test/env.json
+
