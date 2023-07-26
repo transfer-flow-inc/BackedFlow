@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities;
 
+import fr.nil.backedflow.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +23,7 @@ public class Folder {
     @GeneratedValue()
     private UUID id;
     private String folderName;
-    private Byte folderSize;
+    private Long folderSize;
     private int fileCount;
     private boolean isPrivate;
     private boolean isShared;
@@ -34,5 +35,8 @@ public class Folder {
     private String url;
 
     @OneToMany
-    private List<File> fileList;
+    private List<FileEntity> fileEntityList;
+
+    @OneToOne
+    private User folderOwner;
 }

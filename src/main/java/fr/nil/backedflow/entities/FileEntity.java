@@ -1,9 +1,6 @@
 package fr.nil.backedflow.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,19 +15,20 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "_file")
-public class File {
+public class FileEntity {
 
     @Id
     @GeneratedValue()
     private UUID id;
     private Date uploadedAt;
     private Date expiresAt;
-    private Byte fileSize;
+    private Long fileSize;
     private String fileType;
     private String filePath;
     private String fileName;
     private boolean isArchive;
 
-
+    @OneToOne
+    private Folder folder;
 
 }
