@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities;
 
+import fr.nil.backedflow.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,4 +36,8 @@ public class Folder {
 
     @OneToMany
     private List<File> fileList;
+
+    @ManyToOne
+    private User user;
+
 }
