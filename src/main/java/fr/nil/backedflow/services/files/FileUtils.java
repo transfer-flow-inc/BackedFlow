@@ -10,7 +10,7 @@ import java.util.Set;
 public class FileUtils {
 
     @Value("${TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY}")
-    private String mainDirectoryPath = "/home/nil/.transferflow";
+    private String mainDirectoryPath = "/home/nilm/.transferflow";
 
     public String getFileStoragePath()
     {

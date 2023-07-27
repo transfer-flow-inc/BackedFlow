@@ -15,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 @Component
 public class FileEncryptorDecryptor {
@@ -43,6 +44,7 @@ public class FileEncryptorDecryptor {
     }
 
     public void decryptFile(File encryptedFile, File decryptedFile) {
+        System.out.println("hi");
         try {
             byte[] encryptedContent = StreamUtils.copyToByteArray(new FileInputStream(encryptedFile));
 
@@ -50,12 +52,14 @@ public class FileEncryptorDecryptor {
             Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             byte[] decryptedContent = cipher.doFinal(encryptedContent);
-
+            System.out.println(Arrays.toString(decryptedContent));
             FileOutputStream outputStream = new FileOutputStream(decryptedFile);
+            System.out.println(outputStream);
             outputStream.write(decryptedContent);
             outputStream.close();
         } catch (Exception e) {
             // Handle exceptions appropriately
+            e.printStackTrace();
         }
     }
 

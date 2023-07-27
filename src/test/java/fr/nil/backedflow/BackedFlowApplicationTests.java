@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.awt.*;
 import java.io.File;
 import java.security.NoSuchAlgorithmException;
@@ -47,33 +48,37 @@ class BackedFlowApplicationTests {
 
 	@Test
 	void checkFileEncryption() throws NoSuchAlgorithmException {
+
+
 		FileUtils fileUtils = new FileUtils();
-		User user = userRepository.findUserById(UUID.fromString("de78ee60-2173-4f63-9704-bd2dbd377b86")).get();
-		KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-		keyGenerator.init(256); // Set the key size to 256 bits
-		File file = new File("/home/nil/IdeaProjects/BackedFlow/src/test/postman/collection.json");
+		User user = userRepository.findUserById(UUID.fromString("db7ee5da-741e-41ef-9a30-b18f8c31a103")).get();
+
+		File file = new File("/home/nilm/Desktop/Projet/BackedFlow/src/test/postman/collection.json");
 		//fileEncryptorDecryptor.encryptFile(file,new File(fileUtils.getFilePathFromUserStorage(file,user) + File.separator + file.getName()));
-		Folder folder = Folder.builder()
-				.id(UUID.randomUUID())
-				.folderOwner(user)
-				.folderSize(1854L)
-				.folderViews(1)
-				.folderName("test")
-				.fileCount(1)
-				.url("test")
-				.isShared(true)
-				.isPrivate(false)
-				.recipientsEmails(List.of("malhomme.ds@djijoijusq.com"))
-				.build();
-		folderRepository.save(folder);
+		Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
 
 		FileEntity fileEntity = FileEntity.builder()
 				.id(UUID.randomUUID())
 				.fileName(file.getName())
 				.uploadedAt(Date.valueOf(LocalDate.now()))
 				.expiresAt(Date.valueOf(LocalDate.now())).folder(folder).fileSize(file.length()).fileType(fileUtils.getFileExtension(file)).filePath(fileUtils.getFilePathFromUserStorage(file,folder.getFolderOwner())).isArchive(false).build();
+
 		fileEntityRepository.save(fileEntity);
 		fileService.saveFileToStorage(fileEntity.getId(),file,folder);
 	}
 
+
+	@Test
+	void checkFileDecryption()
+	{
+		FileUtils fileUtils = new FileUtils();
+		Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
+		File encryptedFile= fileService.getFileById(UUID.fromString("f9376022-2303-473e-92a3-e7f2cdf32f1e"),folder);
+		User user = userRepository.findUserById(folder.getFolderOwner().getId()).get();
+		System.out.println(encryptedFile.getPath());
+		File decryptedFile = new File(fileUtils.getUserFileStoragePath(user) +File.separator+ encryptedFile.getName().replace(".json",".decrypt"));
+		System.out.println(decryptedFile.getAbsolutePath());
+		fileEncryptorDecryptor.decryptFile(encryptedFile, decryptedFile);
+		System.out.println("hi");
+	}
 }
