@@ -37,7 +37,7 @@ public class User implements UserDetails {
     private String avatar;
     private boolean isAccountVerified;
 
-    @OneToMany
+    @ManyToMany
     private List<Folder> userFolders;
 
     @Override

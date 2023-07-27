@@ -34,9 +34,9 @@ public class Folder {
     private List<String> recipientsEmails;
     private String url;
 
-    @OneToMany
+    @OneToMany(mappedBy="folder")
     private List<FileEntity> fileEntityList;
 
-    @OneToOne
+    @ManyToOne
     private User folderOwner;
 }

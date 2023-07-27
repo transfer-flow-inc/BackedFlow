@@ -28,7 +28,7 @@ public class FileEntity {
     private String fileName;
     private boolean isArchive;
 
-    @OneToOne
+    @ManyToOne
     private Folder folder;
 
 }
