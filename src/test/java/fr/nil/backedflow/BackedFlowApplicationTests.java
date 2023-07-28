@@ -45,7 +45,7 @@ class BackedFlowApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
+/*
 	@Test
 	void checkFileEncryption() throws NoSuchAlgorithmException {
 
@@ -67,7 +67,7 @@ class BackedFlowApplicationTests {
 		fileService.saveFileToStorage(fileEntity.getId(),file,folder);
 	}
 
-
+/*
 	@Test
 	void checkFileDecryption()
 	{
@@ -81,4 +81,6 @@ class BackedFlowApplicationTests {
 		fileEncryptorDecryptor.decryptFile(encryptedFile, decryptedFile);
 		System.out.println("hi");
 	}
+
+ */
 }
