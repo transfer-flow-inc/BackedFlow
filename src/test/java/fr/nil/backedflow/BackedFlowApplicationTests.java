@@ -5,12 +5,18 @@ import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.repositories.FileEntityRepository;
+import fr.nil.backedflow.repositories.FileRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.files.FileUtils;
+import fr.nil.backedflow.services.folder.FolderUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -28,59 +34,33 @@ import java.util.UUID;
 
 @SpringBootTest
 class BackedFlowApplicationTests {
-/*
-	@Autowired
-	public FileEncryptorDecryptor fileEncryptorDecryptor;
 
-	@Autowired
-	public FileService fileService;
-	@Autowired
-	private FolderRepository folderRepository;
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private FileEntityRepository fileEntityRepository;
+    public Logger logger = LoggerFactory.getLogger(BackedFlowApplicationTests.class);
+    @Autowired
+    private FileRepository fileRepository;
+    @Autowired
+    private FolderRepository folderRepository;
 
+    @Test
+    void contextLoads() {
+    }
 
-	@Test
-	void contextLoads() {
-	}
-/*
-	@Test
-	void checkFileEncryption() throws NoSuchAlgorithmException {
+    @Test
+    void testRandomURL()
+    {
+        logger.info("Checking the URL generator");
+        Assertions.assertNotNull(FolderUtils.generateRandomString());
+    }
 
 
-		FileUtils fileUtils = new FileUtils();
-		User user = userRepository.findUserById(UUID.fromString("db7ee5da-741e-41ef-9a30-b18f8c31a103")).get();
+    @Test
+    void addFileToFolder()
+    {
+        FileEntity file = fileRepository.findById(UUID.fromString("a745d4f3-0085-4ced-a53c-1c532d3b2bf0")).get();
+        Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
 
-		File file = new File("/home/nilm/Desktop/Projet/BackedFlow/src/test/postman/collection.json");
-		//fileEncryptorDecryptor.encryptFile(file,new File(fileUtils.getFilePathFromUserStorage(file,user) + File.separator + file.getName()));
-		Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
+        folder.getFileEntityList().add(file);
 
-		FileEntity fileEntity = FileEntity.builder()
-				.id(UUID.randomUUID())
-				.fileName(file.getName())
-				.uploadedAt(Date.valueOf(LocalDate.now()))
-				.expiresAt(Date.valueOf(LocalDate.now())).folder(folder).fileSize(file.length()).fileType(fileUtils.getFileExtension(file)).filePath(fileUtils.getFilePathFromUserStorage(file,folder.getFolderOwner())).isArchive(false).build();
-
-		fileEntityRepository.save(fileEntity);
-		fileService.saveFileToStorage(fileEntity.getId(),file,folder);
-	}
-
-/*
-	@Test
-	void checkFileDecryption()
-	{
-		FileUtils fileUtils = new FileUtils();
-		Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
-		File encryptedFile= fileService.getFileById(UUID.fromString("f9376022-2303-473e-92a3-e7f2cdf32f1e"),folder);
-		User user = userRepository.findUserById(folder.getFolderOwner().getId()).get();
-		System.out.println(encryptedFile.getPath());
-		File decryptedFile = new File(fileUtils.getUserFileStoragePath(user) +File.separator+ encryptedFile.getName().replace(".json",".decrypt"));
-		System.out.println(decryptedFile.getAbsolutePath());
-		fileEncryptorDecryptor.decryptFile(encryptedFile, decryptedFile);
-		System.out.println("hi");
-	}
-
- */
+        folderRepository.save(folder);
+    }
 }

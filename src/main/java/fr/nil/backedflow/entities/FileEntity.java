@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,7 +29,9 @@ public class FileEntity {
     private String fileName;
     private boolean isArchive;
 
+    @JsonIgnore
     @ManyToOne
     private Folder folder;
 
 }
+

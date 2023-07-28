@@ -34,7 +34,14 @@ public class Folder {
     private List<String> recipientsEmails;
     private String url;
 
-    @OneToMany(mappedBy="folder")
+
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "_folder_file_entity_list",
+            joinColumns = @JoinColumn(name = "folder_id"),
+            inverseJoinColumns = @JoinColumn(name = "file_entity_list_id")
+    )
     private List<FileEntity> fileEntityList;
 
     @ManyToOne
