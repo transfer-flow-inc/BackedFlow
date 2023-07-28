@@ -23,7 +23,7 @@ public class Folder {
     @GeneratedValue()
     private UUID id;
     private String folderName;
-    private Byte folderSize;
+    private Long folderSize;
     private int fileCount;
     private boolean isPrivate;
     private boolean isShared;
@@ -34,10 +34,9 @@ public class Folder {
     private List<String> recipientsEmails;
     private String url;
 
-    @OneToMany
-    private List<File> fileList;
+    @OneToMany(mappedBy="folder")
+    private List<FileEntity> fileEntityList;
 
     @ManyToOne
-    private User user;
-
+    private User folderOwner;
 }

@@ -15,14 +15,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "_file")
-public class File {
+public class FileEntity {
 
     @Id
     @GeneratedValue()
     private UUID id;
     private Date uploadedAt;
     private Date expiresAt;
-    private Byte fileSize;
+    private Long fileSize;
     private String fileType;
     private String filePath;
     private String fileName;
