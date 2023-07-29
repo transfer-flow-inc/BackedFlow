@@ -2,10 +2,10 @@ package fr.nil.backedflow.services.files;
 
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
-import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.repositories.FileEntityRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
+import fr.nil.backedflow.services.utils.FileUtils;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
