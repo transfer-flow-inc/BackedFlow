@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 /**
@@ -85,7 +86,7 @@ private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFi
         } catch (Exception exception){
             logger.error("Error logging in : {} ", exception.getMessage());
             response.setHeader("error",exception.getMessage());
-            response.setStatus(FORBIDDEN.value());
+            response.setStatus(INTERNAL_SERVER_ERROR.value());
             Map<String,String > error = new HashMap<>();
             error.put("error_message",exception.getMessage());
             response.setContentType(APPLICATION_JSON_VALUE);
