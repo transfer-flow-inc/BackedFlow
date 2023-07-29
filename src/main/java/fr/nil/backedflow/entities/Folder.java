@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.nil.backedflow.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,7 +35,8 @@ public class Folder {
     private List<String> recipientsEmails;
     private String url;
 
-
+    @JsonIgnore
+    private String accessKey;
 
     @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(
