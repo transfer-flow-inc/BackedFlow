@@ -1,4 +1,4 @@
-package fr.nil.backedflow.services.files;
+package fr.nil.backedflow.services.utils;
 
 import fr.nil.backedflow.entities.user.User;
 import org.springframework.beans.factory.annotation.Value;

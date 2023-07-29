@@ -1,4 +1,4 @@
-package fr.nil.backedflow.services.folder;
+package fr.nil.backedflow.services.utils;
 
 import java.util.Random;
 
