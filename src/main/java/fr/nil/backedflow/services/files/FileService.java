@@ -44,16 +44,17 @@ public class FileService {
     }
 
     // Updates the FileEntity to the DB
-    public FileEntity saveFileEntity(UUID id, File file, Folder folder) {
-        FileEntity fileEntity = getFileEntityById(id).get();
-        fileEntity.setId(UUID.randomUUID());
-        fileEntity.setUploadedAt(Date.valueOf(LocalDate.now()));
-        fileEntity.setExpiresAt(Date.valueOf(LocalDate.now().plus(expiryDate, ChronoUnit.DAYS)));
-        fileEntity.setFileSize(file.length());
-        fileEntity.setFileType(fileUtils.getFileExtension(file));
-        fileEntity.setFilePath(fileUtils.getFilePathFromUserStorage(file,folder.getFolderOwner()));
-        fileEntity.setFileName(file.getName());
-        fileEntity.setArchive(fileUtils.isFileArchive(file));
+    public FileEntity addFileEntity(File file) {
+        FileEntity fileEntity = FileEntity.builder()
+        .id(UUID.randomUUID())
+        .uploadedAt(Date.valueOf(LocalDate.now()))
+        .expiresAt(Date.valueOf(LocalDate.now().plusDays(expiryDate)))
+        .fileSize(file.length())
+        .fileType(fileUtils.getFileExtension(file))
+        .filePath(file.getAbsolutePath())
+        .fileName(file.getName())
+        .isArchive(fileUtils.isFileArchive(file))
+                .build();
         return fileRepository.save(fileEntity);
 
     }
@@ -63,9 +64,8 @@ public class FileService {
 
     public File getFileById(UUID id,Folder folder) {
         Optional<FileEntity> fileEntity = getFileEntityById(id);
-        File file = new File(fileEntity.get().getFilePath());
 
-    return file;
+        return new File(fileEntity.get().getFilePath());
     }
 
     public boolean isFileExpired(FileEntity fileEntity)
