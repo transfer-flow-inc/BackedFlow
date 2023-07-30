@@ -8,9 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Builder
@@ -38,13 +36,13 @@ public class Folder {
     @JsonIgnore
     private String accessKey;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
     @JoinTable(
             name = "_folder_file_entity_list",
             joinColumns = @JoinColumn(name = "folder_id"),
             inverseJoinColumns = @JoinColumn(name = "file_entity_list_id")
     )
-    private List<FileEntity> fileEntityList;
+    private List<FileEntity> fileEntityList = new ArrayList<>();;
 
     @ManyToOne
     private User folderOwner;
