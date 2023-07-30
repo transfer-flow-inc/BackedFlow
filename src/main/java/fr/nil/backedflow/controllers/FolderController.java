@@ -5,6 +5,9 @@ import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.AccessKeyException;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.repositories.FolderRepository;
+import fr.nil.backedflow.services.JWTService;
+import fr.nil.backedflow.services.folder.FolderService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -15,11 +18,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,12 +38,10 @@ import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 public class FolderController {
 
     private final FolderRepository folderRepository;
-
-
+    private final FolderService folderService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id)
-    {
+    public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id) {
         if (!folderRepository.findById(UUID.fromString(id)).isPresent())
             throw new FolderNotFoundException("get");
 
@@ -44,6 +49,15 @@ public class FolderController {
 
         return ResponseEntity.ok(folder);
     }
+
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> multipleFileUpload(@RequestParam("files") MultipartFile[] files, HttpServletRequest request) {
+
+        return folderService.handleMultipleFileUpload(files,request);
+    }
+
+        // Continue with response creation...
 
     // Define a method to download files
     @GetMapping("/download/{folderURL}")
@@ -62,7 +76,7 @@ public class FolderController {
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add("File-Name", file.getFileName());
             httpHeaders.add(CONTENT_DISPOSITION, "attachment;File-Name=" + resource.getFilename());
-            return ResponseEntity.ok().contentType(MediaType.parseMediaType(MediaType.APPLICATION_JSON_VALUE))
+            return ResponseEntity.ok().contentType(MediaType.MULTIPART_FORM_DATA)
                     .headers(httpHeaders).body(resource);
         }
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(Files.probeContentType(Path.of(folder.getFileEntityList().get(1).getFilePath()))))
