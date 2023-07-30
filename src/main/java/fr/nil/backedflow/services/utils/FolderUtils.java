@@ -5,7 +5,7 @@ import java.util.Random;
 public class FolderUtils {
 
 
-    public static String generateRandomString() {
+    public static String generateRandomURL() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder();
 
