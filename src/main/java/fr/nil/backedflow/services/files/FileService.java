@@ -15,12 +15,17 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.FileInputStream;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Data
 @RequiredArgsConstructor
@@ -79,4 +84,48 @@ public class FileService {
     public void deleteFile(UUID id) {
         fileRepository.deleteById(id);
     }
+
+    public File getZippedFiles(List<FileEntity> fileEntities) throws IOException {
+            // Create a buffer for reading the files
+            byte[] buffer = new byte[1024];
+
+            // Create a temp zip file
+            File tempZip = File.createTempFile("files", ".zip");
+
+            try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempZip))) {
+                // Compress the files
+                for (FileEntity fileEntity : fileEntities) {
+                    File originalFile = new File(fileEntity.getFilePath());
+                    File decryptedFile = File.createTempFile("decrypted", ".tmp");
+
+                    // Decrypt the file
+                    fileEncryptorDecryptor.decryptFile(originalFile, decryptedFile);
+
+                    // Open the input file
+                    FileInputStream in = new FileInputStream(decryptedFile.getAbsoluteFile());
+
+                    // Add ZIP entry to output stream
+                    out.putNextEntry(new ZipEntry(fileEntity.getFileName()));
+
+                    // Transfer bytes from the file to the ZIP file
+                    int len;
+                    while ((len = in.read(buffer)) > 0) {
+                        out.write(buffer, 0, len);
+                    }
+
+                    // Complete the entry
+                    out.closeEntry();
+                    in.close();
+
+                    // Delete the decrypted temporary file
+                    decryptedFile.delete();
+                }
+            } catch (IOException e) {
+                // Optionally handle exception
+            }
+
+            // Complete the ZIP file
+            return tempZip;
+        }
+
 }
