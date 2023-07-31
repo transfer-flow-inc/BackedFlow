@@ -2,19 +2,35 @@ package fr.nil.backedflow;
 
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
-import fr.nil.backedflow.manager.StorageManager;
+import fr.nil.backedflow.entities.user.Role;
+import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.repositories.FileRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
+import fr.nil.backedflow.repositories.UserRepository;
+import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
+import fr.nil.backedflow.services.folder.FolderService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
+import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.services.utils.FolderUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.event.annotation.BeforeTestExecution;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 @SpringBootTest
@@ -25,7 +41,113 @@ class BackedFlowApplicationTests {
     private FileRepository fileRepository;
     @Autowired
     private FolderRepository folderRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private FileEncryptorDecryptor fileEncryptorDecryptor;
 
+
+    private User user;
+    private FileUtils fileUtils;
+    private FileEntity fileEntity;
+    private Folder folder;
+
+
+
+
+    @BeforeEach
+    void initializeEntities()
+    {
+
+        fileUtils = new FileUtils();
+        logger.debug("Creating test user entity ...");
+        user = User.builder()
+                .id(UUID.fromString("982b3dd0-54fd-4297-b3d7-962eec7864d0")) // for test static uuid
+                .firstName("test")
+                .lastName("test")
+                .mail("test")
+                .password("test")
+                .role(Role.USER) // Assuming Role.TEST exists
+                .avatar("test")
+                .isAccountVerified(false)
+                .userFolders(new ArrayList<>())
+                .build();
+        logger.debug("User entity has been created and can be used.");
+
+        logger.debug("Creating test file entity ...");
+        fileEntity = FileEntity.builder()
+                .id(UUID.fromString("ea79888c-60a4-47f2-920e-c9c439eeca64"))
+                .fileName("testFile")
+                .filePath("/temp/testFile.txt")
+                .fileType("txt")
+                .fileSize(250L)
+                .isArchive(false)
+                .expiresAt(Date.valueOf(LocalDate.now().plusDays(7)))
+                .uploadedAt(Date.valueOf(LocalDate.now()))
+                .build();
+        logger.debug("File entity has been created and can be used.");
+
+        logger.debug("Creating folder entity");
+        folder = Folder.builder()
+                .id(UUID.fromString("c04e0fab-622e-436e-af8d-a13e9db1241f"))
+                .folderName("Default")
+                .folderOwner(user)
+                .folderViews(0)
+                .url(FolderUtils.generateRandomURL())
+                .accessKey(AccessKeyGenerator.generateAccessKey(32))
+                .uploaded_at(Date.valueOf(LocalDate.now()))
+                .expires_at(Date.valueOf(LocalDate.now().plusDays(7)))
+                .fileEntityList(new ArrayList<>())
+                .isPrivate(false)
+                .isShared(true)
+                .build();
+    }
+
+
+    @Test
+    @Order(1)
+    void testSaveUserToRepository()
+    {
+        logger.debug("Saving test user entity into repository");
+        Assertions.assertNotNull(userRepository.save(user));
+    }
+
+    @Test
+    @Order(1)
+    void testSaveFileEntityToRepository()
+    {
+        logger.debug("Saving test fileEntity entity into repository");
+        Assertions.assertNotNull(fileRepository.save(fileEntity));
+    }
+
+    @Test
+    @Order(1)
+    void testSaveFolderEntityToRepository()
+    {
+        logger.debug("Saving test folder entity into repository");
+        Assertions.assertNotNull(folderRepository.save(folder));
+    }
+
+    @Test
+    void checkIfFolderEntityExistsInRepository()
+    {
+        logger.debug("Check if the folder entity exists in repository");
+        Assertions.assertTrue(folderRepository.existsById(folder.getId()));
+    }
+
+    @Test
+    void testIfFileEntityExistsInRepository()
+    {
+        logger.debug("Check if fileEntity exists in repository");
+        Assertions.assertTrue(fileRepository.existsById(fileEntity.getId()));
+    }
+
+    @Test
+    void testIfUserExistsInRepository()
+    {
+        logger.debug("Check if user exists in repository");
+        Assertions.assertTrue(userRepository.existsById(user.getId()));
+    }
     @Test
     void contextLoads() {
     }
@@ -33,40 +155,58 @@ class BackedFlowApplicationTests {
     @Test
     void testRandomURL()
     {
-        logger.info("Checking the URL generator");
+        logger.debug("Checking the URL generator");
         Assertions.assertNotNull(FolderUtils.generateRandomURL());
     }
 
     @Test
     void testAccessKeyGenerator()
     {
-        logger.info("Checking the Access Key generator");
+        logger.debug("Checking the Access Key generator");
         System.out.println(AccessKeyGenerator.generateAccessKey(32));
         Assertions.assertNotNull(AccessKeyGenerator.generateAccessKey(32));
 
     }
 
     @Test
-    void checkTotalStorageSize()
+    void addFileToFolder()
     {
-        StorageManager storageManager = new StorageManager();
+        logger.debug("Testing adding fileEntity to Folder Entity");
+        folder.getFileEntityList().addAll(Collections.singletonList(fileEntity));
+        folder.setFileCount(folder.getFileEntityList().size());
+        folder.setFolderSize(folder.getFileEntityList().stream().mapToLong(FileEntity::getFileSize).sum());
 
-        try {
-            System.out.println(storageManager.checkStorageSize());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Assertions.assertNotNull(folderRepository.save(folder));
     }
 
 
     @Test
-    void addFileToFolder()
-    {
-        FileEntity file = fileRepository.findById(UUID.fromString("06a5b9a0-e7e7-4dc0-b8c9-8d35d146f629")).get();
-        Folder folder = folderRepository.findById(UUID.fromString("85a03fa0-8810-442c-8e3c-588c1b5e2171")).get();
-        folder.setAccessKey(AccessKeyGenerator.generateAccessKey(32));
-        //folder.getFileEntityList().add(file);
+    public void testGetFileExtension() {
+        File testFile = new File("testFile.txt");
 
-        folderRepository.save(folder);
+        Assertions.assertEquals("txt", fileUtils.getFileExtension(testFile));
     }
+
+    @Test
+    public void testEncryptAndDecryptFile() throws IOException {
+        File input = File.createTempFile("testFile", ".txt");
+        File encrypted = File.createTempFile("encryptedTestFile", ".txt");
+        File decrypted = File.createTempFile("decryptedTestFile", ".txt");
+
+        // Write some content to the input file
+        try (FileWriter writer = new FileWriter(input)) {
+            writer.write("This is a test file.");
+        }
+
+        fileEncryptorDecryptor.encryptFile(input, encrypted);
+        fileEncryptorDecryptor.decryptFile(encrypted, decrypted);
+
+        Assertions.assertArrayEquals(Files.readAllBytes(input.toPath()), Files.readAllBytes(decrypted.toPath()));
+
+        // Clean up the temp files
+        input.deleteOnExit();
+        encrypted.deleteOnExit();
+        decrypted.deleteOnExit();
+    }
+
 }
