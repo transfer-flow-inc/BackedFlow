@@ -12,8 +12,9 @@ import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FolderUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -44,12 +45,17 @@ public class FolderService {
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
 
-    public ResponseEntity<?> handleMultipleFileUpload(MultipartFile[] files, HttpServletRequest request)
+    private Logger logger = LoggerFactory.getLogger(FolderService.class);
+
+    public ResponseEntity<?> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
     {
+        if(folderURL == null)
+            folderURL = FolderUtils.generateRandomURL();
+
     User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer",""), claims -> claims.get("userID").toString()))).orElseThrow(  );
 
     List<FileEntity> fileEntities = new ArrayList<>();
-    Folder folder = addFolderToDatabase(user);
+    Folder folder = addFolderToDatabase(user, folderURL);
 
         for (MultipartFile file : files) {
         if (file.isEmpty()) {
@@ -59,7 +65,6 @@ public class FolderService {
         try {
             // Save the file to a temporary location
             Path tempPath = Paths.get(storageManager.getTempStoragePath() + File.separator + file.getOriginalFilename());
-
             byte[] bytes = file.getBytes();
             Files.write(tempPath, bytes);
 
@@ -83,13 +88,13 @@ public class FolderService {
         return ResponseEntity.ok("Successfully uploaded - " + fileEntities.size());
 }
 
-    public Folder addFolderToDatabase(User user) {
+    public Folder addFolderToDatabase(User user, String folderURL) {
         Folder folder = Folder.builder()
                 .id(UUID.randomUUID())
                 .folderName("Default")
                 .folderOwner(user)
                 .folderViews(0)
-                .url(FolderUtils.generateRandomURL())
+                .url(folderURL)
                 .accessKey(AccessKeyGenerator.generateAccessKey(32))
                 .uploaded_at(Date.valueOf(LocalDate.now()))
                 .expires_at(Date.valueOf(LocalDate.now().plusDays(7)))
