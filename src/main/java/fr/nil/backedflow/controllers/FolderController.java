@@ -2,10 +2,12 @@ package fr.nil.backedflow.controllers;
 
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
+import org.springframework.core.io.FileSystemResource;
 import fr.nil.backedflow.exceptions.AccessKeyException;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.services.JWTService;
+import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
@@ -38,6 +41,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 public class FolderController {
 
     private final FolderRepository folderRepository;
+    private final FileService fileService;
     private final FolderService folderService;
 
     @GetMapping("/{id}")
@@ -52,9 +56,9 @@ public class FolderController {
 
 
     @PostMapping("/upload")
-    public ResponseEntity<?> multipleFileUpload(@RequestParam("files") MultipartFile[] files, HttpServletRequest request) {
+    public ResponseEntity<?> multipleFileUpload(@RequestParam("files") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL,HttpServletRequest request) {
 
-        return folderService.handleMultipleFileUpload(files,request);
+        return folderService.handleMultipleFileUpload(files, folderURL, request);
     }
 
         // Continue with response creation...
@@ -70,17 +74,16 @@ public class FolderController {
         if(!accessKey.equals(folder.getAccessKey()))
             return new ResponseEntity<>("Invalid access key!", HttpStatus.FORBIDDEN);
 
+        File zipFile = fileService.getZippedFiles(folder.getFileEntityList());
 
-        for(FileEntity file : folder.getFileEntityList()) {
-            Resource resource = new UrlResource("file:" + file.getFilePath());
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add("File-Name", file.getFileName());
-            httpHeaders.add(CONTENT_DISPOSITION, "attachment;File-Name=" + resource.getFilename());
-            return ResponseEntity.ok().contentType(MediaType.MULTIPART_FORM_DATA)
-                    .headers(httpHeaders).body(resource);
-        }
-        return ResponseEntity.ok().contentType(MediaType.parseMediaType(Files.probeContentType(Path.of(folder.getFileEntityList().get(1).getFilePath()))))
-                .body(new UrlResource(folder.getFileEntityList().get(1).getFileName()));
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(zipFile.length())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(new FileSystemResource(zipFile));
     }
 
 
