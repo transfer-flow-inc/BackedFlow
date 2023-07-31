@@ -45,7 +45,7 @@ private final AuthenticationProvider authenticationProvider;
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**","/api/v1/folder/download/")
+                .requestMatchers("/api/v1/auth/**","/api/v1/folder/download/**")
                 .permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
                 .permitAll()
