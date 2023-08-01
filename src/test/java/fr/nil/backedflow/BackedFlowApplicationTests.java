@@ -1,19 +1,10 @@
 package fr.nil.backedflow;
 
-import fr.nil.backedflow.entities.FileEntity;
-import fr.nil.backedflow.entities.Folder;
-import fr.nil.backedflow.entities.user.Role;
-import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.repositories.FileRepository;
-import fr.nil.backedflow.repositories.FolderRepository;
-import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.services.utils.FolderUtils;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
+
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +15,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.Date;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.UUID;
+
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
