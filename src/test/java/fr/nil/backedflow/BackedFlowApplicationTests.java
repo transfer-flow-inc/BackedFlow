@@ -57,7 +57,7 @@ class BackedFlowApplicationTests {
         fileUtils = new FileUtils();
         logger.debug("Creating test user entity ...");
         user = User.builder()
-                .id(UUID.fromString("db12b2d3-53d8-4075-a02e-ef578e11aea4")) // for test static uuid
+                .id(UUID.randomUUID()) // for test static uuid
                 .firstName("test")
                 .lastName("test")
                 .mail("test")
@@ -67,7 +67,6 @@ class BackedFlowApplicationTests {
                 .isAccountVerified(false)
                 .userFolders(new ArrayList<>())
                 .build();
-        userRepository.save(user);
         logger.debug("User entity has been created and can be used.");
 
         logger.debug("Creating test file entity ...");
