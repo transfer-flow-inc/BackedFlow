@@ -212,17 +212,7 @@
 								{
 									"key": "files",
 									"type": "file",
-									"src": "testfile.txt"
-								},
-								{
-									"key": "files",
-									"type": "file",
-									"src": []
-								},
-								{
-									"key": "files",
-									"type": "file",
-									"src": []
+									"src": "./src/test/postman/testFile.txt"
 								}
 							]
 						},
