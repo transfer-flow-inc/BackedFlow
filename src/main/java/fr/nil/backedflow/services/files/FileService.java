@@ -33,7 +33,7 @@ import java.util.zip.ZipOutputStream;
 public class FileService {
 
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE}")
-    private int expiryDate;
+    private int expiryDate = 7;
 
     private final FileEntityRepository fileRepository;
     private final FolderRepository folderRepository;
