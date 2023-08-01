@@ -11,10 +11,10 @@ import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.services.utils.FolderUtils;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 class BackedFlowApplicationTests {
 
@@ -43,16 +44,14 @@ class BackedFlowApplicationTests {
     @Autowired
     private FileEncryptorDecryptor fileEncryptorDecryptor;
 
-
     private User user;
     private FileUtils fileUtils;
     private FileEntity fileEntity;
     private Folder folder;
 
 
-
-
     @BeforeEach
+    @Test
     void initializeEntities()
     {
 
@@ -70,7 +69,7 @@ class BackedFlowApplicationTests {
                 .userFolders(new ArrayList<>())
                 .build();
         logger.debug("User entity has been created and can be used.");
-
+        userRepository.save(user);
         logger.debug("Creating test file entity ...");
         fileEntity = FileEntity.builder()
                 .id(UUID.fromString("ea79888c-60a4-47f2-920e-c9c439eeca64"))
@@ -98,8 +97,26 @@ class BackedFlowApplicationTests {
                 .isPrivate(false)
                 .isShared(true)
                 .build();
+
     }
 
+    @BeforeAll
+    void saveUser()
+    {
+        user = User.builder()
+                .id(UUID.fromString("982b3dd0-54fd-4297-b3d7-962eec7864d0")) // for test static uuid
+                .firstName("test")
+                .lastName("test")
+                .mail("test")
+                .password("test")
+                .role(Role.USER) // Assuming Role.TEST exists
+                .avatar("test")
+                .isAccountVerified(false)
+                .userFolders(new ArrayList<>())
+                .build();
+        System.out.println("HI");
+        userRepository.save(user);
+    }
 
     @Test
     @Order(1)
