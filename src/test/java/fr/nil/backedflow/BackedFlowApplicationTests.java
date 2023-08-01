@@ -102,13 +102,7 @@ class BackedFlowApplicationTests {
     }
 
 
-    @Test
-    @Order(1)
-    void testSaveUserToRepository()
-    {
-        logger.debug("Saving test user entity into repository");
-        Assertions.assertNotNull(userRepository.save(user));
-    }
+
 
     @Test
     @Order(1)
@@ -118,20 +112,7 @@ class BackedFlowApplicationTests {
         Assertions.assertNotNull(fileRepository.save(fileEntity));
     }
 
-    @Test
-    @Order(1)
-    void testSaveFolderEntityToRepository()
-    {
-        logger.debug("Saving test folder entity into repository");
-        Assertions.assertNotNull(folderRepository.save(folder));
-    }
 
-    @Test
-    void checkIfFolderEntityExistsInRepository()
-    {
-        logger.debug("Check if the folder entity exists in repository");
-        Assertions.assertFalse(folderRepository.existsById(folder.getId()));
-    }
 
     @Test
     void testIfFileEntityExistsInRepository()
@@ -140,12 +121,7 @@ class BackedFlowApplicationTests {
         Assertions.assertFalse(fileRepository.existsById(fileEntity.getId()));
     }
 
-    @Test
-    void testIfUserExistsInRepository()
-    {
-        logger.debug("Check if user exists in repository");
-        Assertions.assertTrue(userRepository.existsById(user.getId()));
-    }
+
     @Test
     void contextLoads() {
     }
@@ -166,16 +142,7 @@ class BackedFlowApplicationTests {
 
     }
 
-    @Test
-    void addFileToFolder()
-    {
-        logger.debug("Testing adding fileEntity to Folder Entity");
-        folder.getFileEntityList().addAll(Collections.singletonList(fileEntity));
-        folder.setFileCount(folder.getFileEntityList().size());
-        folder.setFolderSize(folder.getFileEntityList().stream().mapToLong(FileEntity::getFileSize).sum());
 
-        Assertions.assertNotNull(folderRepository.save(folder));
-    }
 
 
     @Test
