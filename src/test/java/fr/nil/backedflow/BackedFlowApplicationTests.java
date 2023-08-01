@@ -54,7 +54,6 @@ class BackedFlowApplicationTests {
     @Test
     void initializeEntities()
     {
-
         fileUtils = new FileUtils();
         logger.debug("Creating test user entity ...");
         user = User.builder()
@@ -82,7 +81,6 @@ class BackedFlowApplicationTests {
                 .uploadedAt(Date.valueOf(LocalDate.now()))
                 .build();
         logger.debug("File entity has been created and can be used.");
-
         logger.debug("Creating folder entity");
         folder = Folder.builder()
                 .id(UUID.fromString("c04e0fab-622e-436e-af8d-a13e9db1241f"))
@@ -159,6 +157,18 @@ class BackedFlowApplicationTests {
     @Test
     void testIfUserExistsInRepository()
     {
+        user = User.builder()
+                .id(UUID.fromString("982b3dd0-54fd-4297-b3d7-962eec7864d0")) // for test static uuid
+                .firstName("test")
+                .lastName("test")
+                .mail("test")
+                .password("test")
+                .role(Role.USER) // Assuming Role.TEST exists
+                .avatar("test")
+                .isAccountVerified(false)
+                .userFolders(new ArrayList<>())
+                .build();
+        userRepository.save(user);
         logger.debug("Check if user exists in repository");
         Assertions.assertTrue(userRepository.existsById(user.getId()));
     }
@@ -185,6 +195,51 @@ class BackedFlowApplicationTests {
     @Test
     void addFileToFolder()
     {
+
+        logger.debug("Creating test user entity ...");
+        user = User.builder()
+                .id(UUID.fromString("982b3dd0-54fd-4297-b3d7-962eec7864d0")) // for test static uuid
+                .firstName("test")
+                .lastName("test")
+                .mail("test")
+                .password("test")
+                .role(Role.USER) // Assuming Role.TEST exists
+                .avatar("test")
+                .isAccountVerified(false)
+                .userFolders(new ArrayList<>())
+                .build();
+        logger.debug("User entity has been created and can be used.");
+        userRepository.save(user);
+
+        fileEntity = FileEntity.builder()
+                .id(UUID.fromString("ea79888c-60a4-47f2-920e-c9c439eeca64"))
+                .fileName("testFile")
+                .filePath("/temp/testFile.txt")
+                .fileType("txt")
+                .fileSize(250L)
+                .isArchive(false)
+                .expiresAt(Date.valueOf(LocalDate.now().plusDays(7)))
+                .uploadedAt(Date.valueOf(LocalDate.now()))
+                .build();
+        fileRepository.save(fileEntity);
+        logger.debug("File entity has been created and can be used.");
+
+        logger.debug("Creating folder entity");
+        folder = Folder.builder()
+                .id(UUID.fromString("c04e0fab-622e-436e-af8d-a13e9db1241f"))
+                .folderName("Default")
+                .folderOwner(user)
+                .folderViews(0)
+                .url(FolderUtils.generateRandomURL())
+                .accessKey(AccessKeyGenerator.generateAccessKey(32))
+                .uploaded_at(Date.valueOf(LocalDate.now()))
+                .expires_at(Date.valueOf(LocalDate.now().plusDays(7)))
+                .fileEntityList(new ArrayList<>())
+                .isPrivate(false)
+                .isShared(true)
+                .build();
+        folderRepository.save(folder);
+
         logger.debug("Testing adding fileEntity to Folder Entity");
         folder.getFileEntityList().addAll(Collections.singletonList(fileEntity));
         folder.setFileCount(folder.getFileEntityList().size());
