@@ -45,7 +45,7 @@ private final AuthenticationProvider authenticationProvider;
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**")
+                .requestMatchers("/api/v1/auth/**","/api/v1/folder/download/**")
                 .permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
                 .permitAll()
@@ -70,7 +70,7 @@ private final AuthenticationProvider authenticationProvider;
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200","http://192.168.1.18:4200","http://api.fuel-finder.studio","http://fuel-finder.studio","https://fuel-finder.studio")); // allow all origins
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200","http://192.168.1.18:4200","http://api.transfer-flow.com","http://transfer-flow.com","https://transfer-flow.com")); // allow all origins
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "HEAD")); // allow all HTTP methods
         configuration.setAllowedHeaders(Arrays.asList("*")); // allow all headers
         configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age")); // expose additional headers

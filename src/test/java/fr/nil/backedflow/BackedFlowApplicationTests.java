@@ -1,86 +1,87 @@
 package fr.nil.backedflow;
 
-import fr.nil.backedflow.entities.FileEntity;
-import fr.nil.backedflow.entities.Folder;
-import fr.nil.backedflow.entities.user.Role;
-import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.repositories.FileEntityRepository;
-import fr.nil.backedflow.repositories.FolderRepository;
-import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
-import fr.nil.backedflow.services.files.FileService;
-import fr.nil.backedflow.services.files.FileUtils;
-import org.junit.jupiter.api.Test;
+import fr.nil.backedflow.services.utils.AccessKeyGenerator;
+import fr.nil.backedflow.services.utils.FileUtils;
+import fr.nil.backedflow.services.utils.FolderUtils;
+
+import org.junit.jupiter.api.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import java.awt.*;
 import java.io.File;
-import java.security.NoSuchAlgorithmException;
-import java.sql.Date;
-import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.UUID;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 class BackedFlowApplicationTests {
-/*
-	@Autowired
-	public FileEncryptorDecryptor fileEncryptorDecryptor;
 
-	@Autowired
-	public FileService fileService;
-	@Autowired
-	private FolderRepository folderRepository;
-	@Autowired
-	private UserRepository userRepository;
-	@Autowired
-	private FileEntityRepository fileEntityRepository;
+    public Logger logger = LoggerFactory.getLogger(BackedFlowApplicationTests.class);
+    @Autowired
+    private FileEncryptorDecryptor fileEncryptorDecryptor;
+
+    private FileUtils fileUtils;
 
 
-	@Test
-	void contextLoads() {
-	}
-/*
-	@Test
-	void checkFileEncryption() throws NoSuchAlgorithmException {
+    @BeforeEach
+    @Test
+    void initializeEntities()
+    {
+        fileUtils = new FileUtils();
+    }
 
+    @Test
+    void contextLoads() {
+    }
 
-		FileUtils fileUtils = new FileUtils();
-		User user = userRepository.findUserById(UUID.fromString("db7ee5da-741e-41ef-9a30-b18f8c31a103")).get();
+    @Test
+    void testRandomURL()
+    {
+        logger.debug("Checking the URL generator");
+        Assertions.assertNotNull(FolderUtils.generateRandomURL());
+    }
 
-		File file = new File("/home/nilm/Desktop/Projet/BackedFlow/src/test/postman/collection.json");
-		//fileEncryptorDecryptor.encryptFile(file,new File(fileUtils.getFilePathFromUserStorage(file,user) + File.separator + file.getName()));
-		Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
+    @Test
+    void testAccessKeyGenerator()
+    {
+        logger.debug("Checking the Access Key generator");
+        System.out.println(AccessKeyGenerator.generateAccessKey(32));
+        Assertions.assertNotNull(AccessKeyGenerator.generateAccessKey(32));
 
-		FileEntity fileEntity = FileEntity.builder()
-				.id(UUID.randomUUID())
-				.fileName(file.getName())
-				.uploadedAt(Date.valueOf(LocalDate.now()))
-				.expiresAt(Date.valueOf(LocalDate.now())).folder(folder).fileSize(file.length()).fileType(fileUtils.getFileExtension(file)).filePath(fileUtils.getFilePathFromUserStorage(file,folder.getFolderOwner())).isArchive(false).build();
+    }
 
-		fileEntityRepository.save(fileEntity);
-		fileService.saveFileToStorage(fileEntity.getId(),file,folder);
-	}
+    @Test
+    public void testGetFileExtension() {
+        File testFile = new File("src/test/postman/testFile.txt");
 
-/*
-	@Test
-	void checkFileDecryption()
-	{
-		FileUtils fileUtils = new FileUtils();
-		Folder folder = folderRepository.findById(UUID.fromString("5b79ead4-553b-4fdc-aa36-54f95b67b128")).get();
-		File encryptedFile= fileService.getFileById(UUID.fromString("f9376022-2303-473e-92a3-e7f2cdf32f1e"),folder);
-		User user = userRepository.findUserById(folder.getFolderOwner().getId()).get();
-		System.out.println(encryptedFile.getPath());
-		File decryptedFile = new File(fileUtils.getUserFileStoragePath(user) +File.separator+ encryptedFile.getName().replace(".json",".decrypt"));
-		System.out.println(decryptedFile.getAbsolutePath());
-		fileEncryptorDecryptor.decryptFile(encryptedFile, decryptedFile);
-		System.out.println("hi");
-	}
+        Assertions.assertEquals("txt", fileUtils.getFileExtension(testFile));
+    }
 
- */
+    @Test
+    public void testEncryptAndDecryptFile() throws IOException {
+        File input = File.createTempFile("testFile", ".txt");
+        File encrypted = File.createTempFile("encryptedTestFile", ".txt");
+        File decrypted = File.createTempFile("decryptedTestFile", ".txt");
+
+        // Write some content to the input file
+        try (FileWriter writer = new FileWriter(input)) {
+            writer.write("This is a test file.");
+        }
+
+        fileEncryptorDecryptor.encryptFile(input, encrypted);
+        fileEncryptorDecryptor.decryptFile(encrypted, decrypted);
+
+        Assertions.assertArrayEquals(Files.readAllBytes(input.toPath()), Files.readAllBytes(decrypted.toPath()));
+
+        // Clean up the temp files
+        input.deleteOnExit();
+        encrypted.deleteOnExit();
+        decrypted.deleteOnExit();
+    }
+
 }

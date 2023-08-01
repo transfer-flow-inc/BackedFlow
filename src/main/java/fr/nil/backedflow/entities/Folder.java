@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.nil.backedflow.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,9 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Builder
@@ -34,8 +33,16 @@ public class Folder {
     private List<String> recipientsEmails;
     private String url;
 
-    @OneToMany(mappedBy="folder")
-    private List<FileEntity> fileEntityList;
+    @JsonIgnore
+    private String accessKey;
+
+    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "_folder_file_entity_list",
+            joinColumns = @JoinColumn(name = "folder_id"),
+            inverseJoinColumns = @JoinColumn(name = "file_entity_list_id")
+    )
+    private List<FileEntity> fileEntityList = new ArrayList<>();;
 
     @ManyToOne
     private User folderOwner;

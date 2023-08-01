@@ -27,7 +27,7 @@ public class User implements UserDetails {
     private UUID id;
 
     private String firstName;
-    private String  lastName;
+    private String lastName;
     private String mail;
     private String password;
 
