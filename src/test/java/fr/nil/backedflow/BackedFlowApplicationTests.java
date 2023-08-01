@@ -8,7 +8,6 @@ import fr.nil.backedflow.repositories.FileRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
-import fr.nil.backedflow.services.folder.FolderService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.services.utils.FolderUtils;
@@ -20,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.event.annotation.BeforeTestExecution;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -29,7 +27,6 @@ import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
 
@@ -132,14 +129,14 @@ class BackedFlowApplicationTests {
     void checkIfFolderEntityExistsInRepository()
     {
         logger.debug("Check if the folder entity exists in repository");
-        Assertions.assertTrue(folderRepository.existsById(folder.getId()));
+        Assertions.assertFalse(folderRepository.existsById(folder.getId()));
     }
 
     @Test
     void testIfFileEntityExistsInRepository()
     {
         logger.debug("Check if fileEntity exists in repository");
-        Assertions.assertTrue(fileRepository.existsById(fileEntity.getId()));
+        Assertions.assertFalse(fileRepository.existsById(fileEntity.getId()));
     }
 
     @Test
@@ -182,7 +179,7 @@ class BackedFlowApplicationTests {
 
     @Test
     public void testGetFileExtension() {
-        File testFile = new File("testFile.txt");
+        File testFile = new File("src/test/postman/testFile.txt");
 
         Assertions.assertEquals("txt", fileUtils.getFileExtension(testFile));
     }

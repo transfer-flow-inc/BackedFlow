@@ -89,7 +89,11 @@
 									"",
 									"pm.test(\"Response contains a token\", function () {",
 									"    pm.expect(pm.response.json()).to.have.property('token');",
+									"        pm.environment.set(\"authToken\", pm.response.json().token);",
+									"",
 									"});",
+									"",
+									"",
 									""
 								],
 								"type": "text/javascript"
@@ -128,6 +132,283 @@
 								"v1",
 								"auth",
 								"authenticate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Folder",
+			"item": [
+				{
+					"name": "Get a random Folder entity from DB",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is a JSON object\", function () {",
+									"    pm.response.to.be.json;",
+									"});",
+									"",
+									"pm.test(\"Response contains an id property\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('id');",
+									"    pm.environment.set(\"folderID\", pm.response.json().id);",
+									"});",
+									"",
+									"pm.test(\"Response contains a fileEntityList property\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
+									"});",
+									"",
+									"pm.test(\"Response contains a folderOwner object\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('folderOwner').that.is.an('object');",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{ baseURL}}/api/v1/test/folder/random",
+							"protocol": "http",
+							"host": [
+								"{{ baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"test",
+								"folder",
+								"random"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a Folder object from the Folder ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains an id\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('id');",
+									"});",
+									"",
+									"pm.test(\"Response contains a fileEntityList\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
+									"});",
+									"",
+									"pm.test(\"Response contains a folderOwner\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('folderOwner');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{ baseURL}}/api/v1/folder/{{folderID}}",
+							"protocol": "http",
+							"host": [
+								"{{ baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								"{{folderID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload file to database",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains folder and accessKey objects\", function () {",
+									"    var jsonData = pm.response.json();",
+									"",
+									"    pm.expect(jsonData).to.have.property('folder');",
+									"    pm.expect(jsonData).to.have.property('accessKey');",
+									"});",
+									"",
+									"pm.test(\"The folder object has a non-empty fileEntityList\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var fileEntityList = jsonData.folder.fileEntityList;",
+									"",
+									"    pm.expect(fileEntityList).to.be.an('array').that.is.not.empty;",
+									"});",
+									"",
+									"pm.test(\"The folder object has an id\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var folderId = jsonData.folder.id;",
+									"",
+									"    pm.expect(folderId).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0);",
+									"});",
+									"",
+									"pm.test(\"Adding object value to environment for further testing\", function () {",
+									"    pm.environment.set(\"folderID\", response.folder.id);",
+									"    pm.environment.set(\"folderURL\", response.folder.url);",
+									"    pm.environment.set(\"accessKey\", response.accessKey);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"type": "file",
+									"src": "./src/test/postman/testFile.txt"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{ baseURL}}/api/v1/folder/upload",
+							"protocol": "http",
+							"host": [
+								"{{ baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								"upload"
+							],
+							"query": [
+								{
+									"key": "folderURL",
+									"value": "coucou",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download all file from folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has content-type header of mime/application-octet\", function () {",
+									"    pm.expect(pm.response.headers.get('content-type')).to.include('application/octet-stream');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{ baseURL}}/api/v1/folder/download/{{folderURL}}?accessKey={{accessKey}}",
+							"protocol": "http",
+							"host": [
+								"{{ baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								"download",
+								"{{folderURL}}"
+							],
+							"query": [
+								{
+									"key": "accessKey",
+									"value": "{{accessKey}}"
+								}
 							]
 						}
 					},

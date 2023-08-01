@@ -4,6 +4,7 @@ import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.manager.StorageManager;
+import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.JWTService;
@@ -85,7 +86,7 @@ public class FolderService {
 
     }
         addFilesToFolder(folder, fileEntities);
-        return ResponseEntity.ok("Successfully uploaded - " + fileEntities.size());
+        return ResponseEntity.ok(FolderResponse.builder().folder(folder).accessKey(folder.getAccessKey()).build());
 }
 
     public Folder addFolderToDatabase(User user, String folderURL) {

@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class AccessKeyGenerator {
 
-    public static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-$*+";
+    public static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-$*";
 
     public static String generateAccessKey(int length) {
         Random random = new Random();
