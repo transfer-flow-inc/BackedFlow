@@ -1,11 +1,20 @@
 package fr.nil.backedflow;
 
+import fr.nil.backedflow.entities.FileEntity;
+import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.repositories.FileRepository;
+import fr.nil.backedflow.repositories.FolderRepository;
+import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.services.utils.FolderUtils;
 
 import org.junit.jupiter.api.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,29 +25,59 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 class BackedFlowApplicationTests {
 
     public Logger logger = LoggerFactory.getLogger(BackedFlowApplicationTests.class);
+    @Mock
+    private FileRepository fileRepository;
+    @Mock
+    private FolderRepository folderRepository;
+    @Mock
+    private UserRepository userRepository;
     @Autowired
     private FileEncryptorDecryptor fileEncryptorDecryptor;
 
-    private FileUtils fileUtils;
 
+    @InjectMocks
+    private User user;
+    private FileUtils fileUtils;
+    @InjectMocks
+    private FileEntity fileEntity;
+    @InjectMocks
+    private Folder folder;
 
     @BeforeEach
-    @Test
-    void initializeEntities()
-    {
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        // Initialize your entities here
         fileUtils = new FileUtils();
     }
-
     @Test
-    void contextLoads() {
+    void testSaveUserToRepository() {
+        when(userRepository.save(any(User.class))).thenReturn(user);
+        User savedUser = userRepository.save(user);
+        Assertions.assertNotNull(savedUser);
     }
 
+    @Test
+    void testSaveFileEntityToRepository() {
+        when(fileRepository.save(any(FileEntity.class))).thenReturn(fileEntity);
+        FileEntity savedFileEntity = fileRepository.save(fileEntity);
+        Assertions.assertNotNull(savedFileEntity);
+    }
+
+    @Test
+    void testSaveFolderEntityToRepository() {
+        when(folderRepository.save(any(Folder.class))).thenReturn(folder);
+        Folder savedFolder = folderRepository.save(folder);
+        Assertions.assertNotNull(savedFolder);
+    }
     @Test
     void testRandomURL()
     {
