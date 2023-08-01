@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-18.04
     services:
       mysql:
         image: mysql:8
@@ -37,4 +37,7 @@ jobs:
         TRANSFERFLOW_API_GOOGLE_CLIENT_ID: test
         TRANSFERFLOW_API_TOKEN_SECRET_KEY: ${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }}
         SPRING_PROFILE: testing
+        TRANSFERFLOW_FILE_ENCRYPTION_KEY: f0e1d2c3b4a5968778695a4b3c2d1e0f
+        TRANSFERFLOW_FILE_EXPIRY_DATE: 7
+        TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow
       run: mvn --no-transfer-progress test
