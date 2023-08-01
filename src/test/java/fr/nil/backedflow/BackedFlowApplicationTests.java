@@ -51,15 +51,13 @@ class BackedFlowApplicationTests {
 
 
 
-
     @BeforeEach
     void initializeEntities()
     {
-
         fileUtils = new FileUtils();
         logger.debug("Creating test user entity ...");
         user = User.builder()
-                .id(UUID.fromString("982b3dd0-54fd-4297-b3d7-962eec7864d0")) // for test static uuid
+                .id(UUID.fromString("db12b2d3-53d8-4075-a02e-ef578e11aea4")) // for test static uuid
                 .firstName("test")
                 .lastName("test")
                 .mail("test")
@@ -69,6 +67,7 @@ class BackedFlowApplicationTests {
                 .isAccountVerified(false)
                 .userFolders(new ArrayList<>())
                 .build();
+        userRepository.save(user);
         logger.debug("User entity has been created and can be used.");
 
         logger.debug("Creating test file entity ...");
@@ -82,6 +81,7 @@ class BackedFlowApplicationTests {
                 .expiresAt(Date.valueOf(LocalDate.now().plusDays(7)))
                 .uploadedAt(Date.valueOf(LocalDate.now()))
                 .build();
+        fileRepository.save(fileEntity);
         logger.debug("File entity has been created and can be used.");
 
         logger.debug("Creating folder entity");
@@ -98,6 +98,7 @@ class BackedFlowApplicationTests {
                 .isPrivate(false)
                 .isShared(true)
                 .build();
+        folderRepository.save(folder);
     }
 
 
