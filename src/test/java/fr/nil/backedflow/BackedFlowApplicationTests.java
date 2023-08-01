@@ -51,13 +51,15 @@ class BackedFlowApplicationTests {
 
 
 
+
     @BeforeEach
     void initializeEntities()
     {
+
         fileUtils = new FileUtils();
         logger.debug("Creating test user entity ...");
         user = User.builder()
-                .id(UUID.randomUUID()) // for test static uuid
+                .id(UUID.fromString("982b3dd0-54fd-4297-b3d7-962eec7864d0")) // for test static uuid
                 .firstName("test")
                 .lastName("test")
                 .mail("test")
@@ -80,7 +82,6 @@ class BackedFlowApplicationTests {
                 .expiresAt(Date.valueOf(LocalDate.now().plusDays(7)))
                 .uploadedAt(Date.valueOf(LocalDate.now()))
                 .build();
-        fileRepository.save(fileEntity);
         logger.debug("File entity has been created and can be used.");
 
         logger.debug("Creating folder entity");
@@ -97,11 +98,16 @@ class BackedFlowApplicationTests {
                 .isPrivate(false)
                 .isShared(true)
                 .build();
-        folderRepository.save(folder);
     }
 
 
-
+    @Test
+    @Order(1)
+    void testSaveUserToRepository()
+    {
+        logger.debug("Saving test user entity into repository");
+        Assertions.assertNotNull(userRepository.save(user));
+    }
 
     @Test
     @Order(1)
@@ -111,7 +117,20 @@ class BackedFlowApplicationTests {
         Assertions.assertNotNull(fileRepository.save(fileEntity));
     }
 
+    @Test
+    @Order(1)
+    void testSaveFolderEntityToRepository()
+    {
+        logger.debug("Saving test folder entity into repository");
+        Assertions.assertNotNull(folderRepository.save(folder));
+    }
 
+    @Test
+    void checkIfFolderEntityExistsInRepository()
+    {
+        logger.debug("Check if the folder entity exists in repository");
+        Assertions.assertFalse(folderRepository.existsById(folder.getId()));
+    }
 
     @Test
     void testIfFileEntityExistsInRepository()
@@ -120,7 +139,12 @@ class BackedFlowApplicationTests {
         Assertions.assertFalse(fileRepository.existsById(fileEntity.getId()));
     }
 
-
+    @Test
+    void testIfUserExistsInRepository()
+    {
+        logger.debug("Check if user exists in repository");
+        Assertions.assertTrue(userRepository.existsById(user.getId()));
+    }
     @Test
     void contextLoads() {
     }
@@ -141,7 +165,16 @@ class BackedFlowApplicationTests {
 
     }
 
+    @Test
+    void addFileToFolder()
+    {
+        logger.debug("Testing adding fileEntity to Folder Entity");
+        folder.getFileEntityList().addAll(Collections.singletonList(fileEntity));
+        folder.setFileCount(folder.getFileEntityList().size());
+        folder.setFolderSize(folder.getFileEntityList().stream().mapToLong(FileEntity::getFileSize).sum());
 
+        Assertions.assertNotNull(folderRepository.save(folder));
+    }
 
 
     @Test
