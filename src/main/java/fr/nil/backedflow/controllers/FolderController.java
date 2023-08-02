@@ -1,20 +1,16 @@
 package fr.nil.backedflow.controllers;
 
-import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import org.springframework.core.io.FileSystemResource;
 import fr.nil.backedflow.exceptions.AccessKeyException;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.repositories.FolderRepository;
-import fr.nil.backedflow.services.JWTService;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,15 +21,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,7 +36,7 @@ public class FolderController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id) {
-        if (!folderRepository.findById(UUID.fromString(id)).isPresent())
+        if (folderRepository.findById(UUID.fromString(id)).isEmpty())
             throw new FolderNotFoundException("get");
 
         Folder folder = folderRepository.findById(UUID.fromString(id)).get();
@@ -65,10 +55,11 @@ public class FolderController {
 
     // Define a method to download files
     @GetMapping("/download/{folderURL}")
-    public ResponseEntity<?> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException, MalformedURLException, AccessKeyException {
+    public ResponseEntity<?> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException{
         if(accessKey.isEmpty())
             return new ResponseEntity<>("Invalid access key!", HttpStatus.FORBIDDEN);
-
+        if(!folderRepository.existsByUrl(folderURL))
+            throw new FolderNotFoundException("get");
         Folder folder = folderRepository.getFolderByUrl(folderURL).get();
 
         if(!accessKey.equals(folder.getAccessKey()))

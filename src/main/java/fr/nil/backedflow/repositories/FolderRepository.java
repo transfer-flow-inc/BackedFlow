@@ -18,5 +18,6 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
         @Query(value = "SELECT f FROM Folder f ORDER BY RAND() LIMIT 1")
         Optional<Folder> getRandomFolder();
 
+        boolean existsByUrl(@Param("url") String url);
 
 }
