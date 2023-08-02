@@ -1,24 +1,23 @@
 package fr.nil.backedflow.services.files;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 @Component
 public class FileEncryptorDecryptor {
+
+    private final Logger logger = LoggerFactory.getLogger(FileEncryptorDecryptor.class);
 
     @Value("${TRANSFERFLOW_FILE_ENCRYPTION_KEY}")
     private String aesSecretKey;
@@ -38,13 +37,12 @@ public class FileEncryptorDecryptor {
                 outputStream.write(encryptedContent);
                 outputStream.close();
             } catch (Exception e) {
-                // Handle exceptions appropriately
-                throw new RuntimeException(e);
+                logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
+                logger.debug(Arrays.toString(e.getStackTrace()));
             }
     }
 
     public void decryptFile(File encryptedFile, File decryptedFile) {
-        System.out.println("hi");
         try {
             byte[] encryptedContent = StreamUtils.copyToByteArray(new FileInputStream(encryptedFile));
 
@@ -59,7 +57,8 @@ public class FileEncryptorDecryptor {
             outputStream.close();
         } catch (Exception e) {
             // Handle exceptions appropriately
-            e.printStackTrace();
+            logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
+            logger.debug(Arrays.toString(e.getStackTrace()));
         }
     }
 

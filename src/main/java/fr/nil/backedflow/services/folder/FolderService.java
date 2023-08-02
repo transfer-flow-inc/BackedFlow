@@ -3,6 +3,7 @@ package fr.nil.backedflow.services.folder;
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.exceptions.UserNotFoundException;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.repositories.FolderRepository;
@@ -16,9 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,8 +27,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,12 +47,13 @@ public class FolderService {
 
     private Logger logger = LoggerFactory.getLogger(FolderService.class);
 
+    @SneakyThrows
     public ResponseEntity<?> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
     {
         if(folderURL == null)
             folderURL = FolderUtils.generateRandomURL();
 
-    User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer",""), claims -> claims.get("userID").toString()))).orElseThrow(  );
+    User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer",""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
     List<FileEntity> fileEntities = new ArrayList<>();
     Folder folder = addFolderToDatabase(user, folderURL);
@@ -79,8 +79,9 @@ public class FolderService {
             fileEntities.add(fileService.addFileEntity(finalPath.toFile()));
         } catch (Exception e) {
             // Handle exceptions appropriately,
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body("Failed to upload files => " + e.getMessage());
+            logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
+            logger.debug(Arrays.toString(e.getStackTrace()));
+            return ResponseEntity.badRequest().body("Something went wrong during the file upload please try again later");
 
         }
 

@@ -8,6 +8,8 @@ import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.utils.FileUtils;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,7 @@ import java.io.IOException;
 import java.io.FileInputStream;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +33,8 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 @Service
 public class FileService {
+
+    private final Logger logger = LoggerFactory.getLogger(FileService.class);
 
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE}")
     private int expiryDate = 7;
@@ -121,7 +125,8 @@ public class FileService {
                     decryptedFile.delete();
                 }
             } catch (IOException e) {
-                // Optionally handle exception
+                logger.error("An error occurred during the file zipping (Error message : " + e.getMessage() + ").");
+                logger.debug(Arrays.toString(e.getStackTrace()));
             }
 
             // Complete the ZIP file
