@@ -1,4 +1,5 @@
 name: Build and Publish Docker image to Github Image Repo
+
 on:
   push:
     branches:
@@ -31,5 +32,10 @@ jobs:
               "password": "${{ secrets.REGISTRY_PASSWORD }}"
             }]
 
+      - name: prepare
+        id: prep
+        run: |
+          echo "::set-output name=tag::$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
+
       - name: Build and push Docker image
-        run: mvn compile jib:build -Djib.to.image=ghcr.io/${{ github.repository | tolower }} -Djib.to.auth.username="${{ github.actor }}" -Djib.to.auth.password="${{ secrets.REGISTRY_PASSWORD }}"
+        run: mvn compile jib:build -Djib.to.image=ghcr.io/${{ steps.prep.outputs.tag }} -Djib.to.auth.username="${{ github.actor }}" -Djib.to.auth.password="${{ secrets.REGISTRY_PASSWORD }}"
