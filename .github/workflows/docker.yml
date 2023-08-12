@@ -10,7 +10,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,13 +24,12 @@ jobs:
       - name: Set up Maven
         uses: s4u/maven-settings-action@v2.4.0
         with:
-              servers: |
-                [{
-                "id": "ghcr",
-                "username": "${{ github.actor }}",
-                "password": "${{ secrets.REGISTRY_PASSWORD }}"
-              }]
+          servers: |
+            [{
+              "id": "ghcr",
+              "username": "${{ github.actor }}",
+              "password": "${{ secrets.REGISTRY_PASSWORD }}"
+            }]
 
       - name: Build and push Docker image
-        run: mvn compile jib:build -Djib.to.image=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]') -Djib.to.auth.username="${{ github.actor }}" -Djib.to.auth.password="${{ secrets.REGISTRY_PASSWORD }}"
-
+        run: mvn compile jib:build -Djib.to.image=ghcr.io/${{ github.repository | tolower }} -Djib.to.auth.username="${{ github.actor }}" -Djib.to.auth.password="${{ secrets.REGISTRY_PASSWORD }}"
