@@ -1,10 +1,10 @@
 package fr.nil.backedflow.auth;
 
 
+import fr.nil.backedflow.auth.exceptions.EmailAlreadyUsedException;
 import fr.nil.backedflow.auth.exceptions.InvalidEmailException;
 import fr.nil.backedflow.auth.exceptions.InvalidUsernameException;
 import fr.nil.backedflow.auth.exceptions.UnsecuredPasswordException;
-import fr.nil.backedflow.auth.exceptions.EmailAlreadyUsedException;
 import fr.nil.backedflow.auth.requests.AuthenticationRequest;
 import fr.nil.backedflow.auth.requests.GoogleSSOLoginRequest;
 import fr.nil.backedflow.auth.requests.RegisterRequest;
@@ -51,7 +51,7 @@ public class AuthenticationController {
         if(userRepository.existsByMail(request.getEmail()))
             throw new EmailAlreadyUsedException();
 
-            if(request.getPassword().length() < 6)
+        if(request.getPassword().length() < 6)
             throw new UnsecuredPasswordException();
         if(InvalidUsernameException.BLACKLISTED_USERNAME_LIST.contains(request.getFirstName()) || InvalidUsernameException.BLACKLISTED_USERNAME_LIST.contains(request.getLastName()))
             throw new InvalidUsernameException(request.getFirstName()  + "||" + request.getLastName());
