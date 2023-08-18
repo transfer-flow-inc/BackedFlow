@@ -8,9 +8,7 @@
     import fr.nil.backedflow.auth.responses.AuthenticationResponse;
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
-    import fr.nil.backedflow.event.AccountCreationEvent;
     import fr.nil.backedflow.repositories.UserRepository;
-    import fr.nil.backedflow.services.utils.FolderUtils;
     import lombok.RequiredArgsConstructor;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.kafka.core.KafkaTemplate;
@@ -64,12 +62,15 @@ public class AuthenticationService {
 
         user = userRepository.save(user);
         String jwtToken = jwtService.generateToken(extraClaims,user);
+        /*
         kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
                         .userID(user.getId().toString())
                         .userName(user.getFirstName() + " " + user.getLastName())
                         .email(user.getMail())
                         .validationToken(FolderUtils.generateRandomURL())
                 .build());
+
+         */
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
 
