@@ -1,25 +1,26 @@
-package fr.nil.backedflow.services;
+    package fr.nil.backedflow.services;
 
 
-import fr.nil.backedflow.auth.exceptions.InvalidSSOLoginRequest;
-import fr.nil.backedflow.auth.requests.AuthenticationRequest;
-import fr.nil.backedflow.auth.requests.GoogleSSOLoginRequest;
-import fr.nil.backedflow.auth.requests.RegisterRequest;
-import fr.nil.backedflow.auth.responses.AuthenticationResponse;
-import fr.nil.backedflow.entities.user.Role;
-import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+    import fr.nil.backedflow.auth.exceptions.InvalidSSOLoginRequest;
+    import fr.nil.backedflow.auth.requests.AuthenticationRequest;
+    import fr.nil.backedflow.auth.requests.GoogleSSOLoginRequest;
+    import fr.nil.backedflow.auth.requests.RegisterRequest;
+    import fr.nil.backedflow.auth.responses.AuthenticationResponse;
+    import fr.nil.backedflow.entities.user.Role;
+    import fr.nil.backedflow.entities.user.User;
+    import fr.nil.backedflow.repositories.UserRepository;
+    import lombok.RequiredArgsConstructor;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.kafka.core.KafkaTemplate;
+    import org.springframework.security.authentication.AuthenticationManager;
+    import org.springframework.security.authentication.BadCredentialsException;
+    import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+    import org.springframework.security.crypto.password.PasswordEncoder;
+    import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+    import java.util.HashMap;
+    import java.util.Map;
+    import java.util.Objects;
 
 
 @Service
@@ -31,7 +32,8 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
-
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
     /**
      * Registers a new user with the provided information.
      *
@@ -47,6 +49,7 @@ public class AuthenticationService {
                 .mail(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
+                .isAccountVerified(false)
                 .build();
 
         Map<String, Object> extraClaims = new HashMap<>();
@@ -57,9 +60,17 @@ public class AuthenticationService {
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
 
-        userRepository.save(user);
+        user = userRepository.save(user);
         String jwtToken = jwtService.generateToken(extraClaims,user);
+        /*
+        kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
+                        .userID(user.getId().toString())
+                        .userName(user.getFirstName() + " " + user.getLastName())
+                        .email(user.getMail())
+                        .validationToken(FolderUtils.generateRandomURL())
+                .build());
 
+         */
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
 
