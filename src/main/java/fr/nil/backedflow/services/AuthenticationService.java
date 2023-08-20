@@ -8,6 +8,7 @@
     import fr.nil.backedflow.auth.responses.AuthenticationResponse;
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
+    import fr.nil.backedflow.entities.user.UserVerification;
     import fr.nil.backedflow.repositories.UserRepository;
     import lombok.RequiredArgsConstructor;
     import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,8 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserVerificationService userVerificationService;
+
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
     /**
@@ -59,18 +62,23 @@ public class AuthenticationService {
         extraClaims.put("userEmail", user.getMail());
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
+        extraClaims.put("isAccountVerified", user.getIsAccountVerified());
 
         user = userRepository.save(user);
         String jwtToken = jwtService.generateToken(extraClaims,user);
-        /*
+
+        UserVerification userVerification = userVerificationService.generateVerificationToken(user);
+/*
         kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
                         .userID(user.getId().toString())
                         .userName(user.getFirstName() + " " + user.getLastName())
                         .email(user.getMail())
-                        .validationToken(FolderUtils.generateRandomURL())
+                        .validationToken(userVerification.verificationToken)
                 .build());
 
-         */
+
+
+ */
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
 
@@ -81,12 +89,14 @@ public class AuthenticationService {
      * @return an authentication response containing a JWT token
      * @throws BadCredentialsException if the provided email and password do not match a user in the user repository
      */
+
     public AuthenticationResponse authenticate(AuthenticationRequest request)
     {
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(),request.getPassword()));
         User user = userRepository.findByMail(request.getEmail())
                 .orElseThrow();
+
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("authMethod", "spring_database");
         extraClaims.put("firstName", user.getFirstName());
@@ -94,6 +104,8 @@ public class AuthenticationService {
         extraClaims.put("userEmail", user.getMail());
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
+        extraClaims.put("isAccountVerified", user.getIsAccountVerified());
+
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();
@@ -115,6 +127,7 @@ public class AuthenticationService {
         // Check if the Azp is equals to the stored clientID, to avoid faking a SSO login to the app via another google sso login
         if(!Objects.equals(request.getAzp(), googleSSOClientID))
             throw new InvalidSSOLoginRequest();
+
         if(!Objects.equals(request.getAzp(), request.getAud()))
             throw new InvalidSSOLoginRequest();
 
@@ -123,6 +136,7 @@ public class AuthenticationService {
                 .lastName(request.getLastName())
                 .mail(request.getEmail())
                 .password(passwordEncoder.encode(request.getJti()))
+                .isAccountVerified(true)
                 .role(Role.USER)
                 .build();
 
@@ -136,6 +150,8 @@ public class AuthenticationService {
         extraClaims.put("userEmail", user.getMail());
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
+        extraClaims.put("isAccountVerified", user.getIsAccountVerified());
+
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
