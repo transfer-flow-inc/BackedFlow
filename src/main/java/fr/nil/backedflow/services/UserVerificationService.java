@@ -42,7 +42,7 @@ public class UserVerificationService {
             User user = userRepository.findUserById(userVerification.getUser().getId()).get();
 
 
-            if (user.isAccountVerified())
+            if (user.getIsAccountVerified())
                 throw new AccountAlreadyVerifiedException();
 
             verifyUser(user);
@@ -60,11 +60,11 @@ public class UserVerificationService {
 
     public void verifyUser(User user) {
         try {
-            if (user.isAccountVerified())
+            if (user.getIsAccountVerified())
                 throw new AccountAlreadyVerifiedException();
 
             log.debug("Setting the user " + user.getId() + " account to verified.");
-            user.setAccountVerified(true);
+            user.setIsAccountVerified(true);
             userRepository.save(user);
             log.debug("The user " + user.getId() + " has been verified.");
 
