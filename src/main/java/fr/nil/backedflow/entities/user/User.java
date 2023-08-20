@@ -35,7 +35,7 @@ public class User implements UserDetails {
     private Role role;
 
     private String avatar;
-    private boolean isAccountVerified;
+    private Boolean isAccountVerified;
 
     @ManyToMany
     private List<Folder> userFolders;

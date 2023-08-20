@@ -7,6 +7,7 @@ import fr.nil.backedflow.exceptions.InvalidRequestException;
 import fr.nil.backedflow.repositories.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Data
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class UserService {
 
     private final PasswordEncoder passwordEncoder;
