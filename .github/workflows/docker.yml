@@ -45,4 +45,4 @@ jobs:
 
       - name: Trigger Portainer Webhook
         run: |
-          curl --insecure -X POST {{ secret.PORTAINER_URL }}
+          curl --insecure -X POST ${{ secrets.PORTAINER_URL }}
