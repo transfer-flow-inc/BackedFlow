@@ -35,7 +35,7 @@ private final AuthenticationProvider authenticationProvider;
      * @param httpSecurity the HTTP security object to configure
      * @return the security filter chain
      * @throws Exception if an error occurs while configuring the security filter chain
-     */
+     **/
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
@@ -45,7 +45,7 @@ private final AuthenticationProvider authenticationProvider;
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**","/api/v1/folder/download/**")
+                .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/verify/**")
                 .permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
                 .permitAll()
@@ -60,6 +60,7 @@ private final AuthenticationProvider authenticationProvider;
 
         return httpSecurity.build();
     }
+
 
     /**
      * Configures the CORS configuration for HTTP requests.
@@ -83,4 +84,27 @@ private final AuthenticationProvider authenticationProvider;
         return source;
     }
 
+    /**
+     * Configures the security filter chain for HTTP requests.
+     *
+     * @param httpSecurity the HTTP security object to configure
+     * @return the security filter chain
+     * @throws Exception if an error occurs while configuring the security filter chain
+     */
+    /*
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, CorsConfigurationSource corsConfigurationSource) throws Exception {
+        httpSecurity
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/verify/**", "/v3/api-docs/**", "/swagger-ui/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return httpSecurity.build();
+    }
+
+     */
 }
