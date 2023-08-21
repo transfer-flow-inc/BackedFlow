@@ -53,25 +53,25 @@ jobs:
         run: |
           # Authenticate with Portainer and store the JWT
           echo "Authenticating with Portainer..."
-          AUTH_RESPONSE=$(curl -s -X POST "$PORTAINER_URL/api/auth" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"Username\": \"$PORTAINER_USERNAME\", \"Password\": \"$PORTAINER_PASSWORD\"}")
+          AUTH_RESPONSE=$(curl --insecure -s -X POST "$PORTAINER_URL/api/auth" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"Username\": \"$PORTAINER_USERNAME\", \"Password\": \"$PORTAINER_PASSWORD\"}")
           echo $AUTH_RESPONSE
           JWT=$(echo $AUTH_RESPONSE | jq -r .jwt)
 
           # Get the stack ID
           echo "Getting the stack ID..."
-          STACKS_RESPONSE=$(curl -s -H "Authorization: Bearer $JWT" "$PORTAINER_URL/api/stacks")
+          STACKS_RESPONSE=$(curl --insecure -s -H "Authorization: Bearer $JWT" "$PORTAINER_URL/api/stacks")
           echo $STACKS_RESPONSE
           STACK_ID=$(echo $STACKS_RESPONSE | jq -r ".[] | select(.Name==\"$STACK_NAME\") | .Id")
           
           # Fetch the existing compose file of the stack
           echo "Fetching the existing compose file of the stack..."
-          COMPOSE_FILE_RESPONSE=$(curl -s -H "Authorization: Bearer $JWT" "$PORTAINER_URL/api/stacks/$STACK_ID/docker-compose")
+          COMPOSE_FILE_RESPONSE=$(curl --insecure -s -H "Authorization: Bearer $JWT" "$PORTAINER_URL/api/stacks/$STACK_ID/docker-compose")
           echo $COMPOSE_FILE_RESPONSE
           COMPOSE_FILE=$(echo $COMPOSE_FILE_RESPONSE | jq -r '.StackFileContent')
           
           # Redeploy the stack with the fetched compose file
           echo "Redeploying the stack with the fetched compose file..."
-          REDEPLOY_RESPONSE=$(curl -s -X POST "$PORTAINER_URL/api/stacks/$STACK_ID?endpointId=$PORTAINER_ENDPOINT" \
+          REDEPLOY_RESPONSE=$(curl --insecure -s -X POST "$PORTAINER_URL/api/stacks/$STACK_ID?endpointId=$PORTAINER_ENDPOINT" \
           -H "Authorization: Bearer $JWT" \
           -H "accept: application/json" \
           -H "Content-Type: application/json" \
