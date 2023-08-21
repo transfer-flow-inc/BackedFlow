@@ -31,11 +31,43 @@ jobs:
               "username": "${{ github.actor }}",
               "password": "${{ secrets.REGISTRY_PASSWORD }}"
             }]
+      - name: Install dependencies
+        run: sudo apt-get install jq
 
-      - name: prepare
+
+      - name: Preparing the Image build
         id: prep
         run: |
           echo "::set-output name=tag::$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')"
 
       - name: Build and push Docker image
         run: mvn compile jib:build -Djib.to.image=ghcr.io/${{ steps.prep.outputs.tag }} -Djib.to.auth.username="${{ github.actor }}" -Djib.to.auth.password="${{ secrets.REGISTRY_PASSWORD }}"
+
+      - name: Redeploy stack on Portainer
+        env:
+          PORTAINER_URL: ${{ secrets.PORTAINER_URL }}
+          PORTAINER_ENDPOINT: ${{ secrets.PORTAINER_ENDPOINT }}
+          PORTAINER_USERNAME: ${{ secrets.PORTAINER_USERNAME }}
+          PORTAINER_PASSWORD: ${{ secrets.PORTAINER_PASSWORD }}
+          STACK_NAME: transfer-flow-backend
+        run: |
+          # Authenticate with Portainer and store the JWT
+          JWT=$(curl -s -X POST "$PORTAINER_URL/api/auth" -H "accept: application/json" -H "Content-Type: application/json" -d "{ \"Username\": \"$PORTAINER_USERNAME\", \"Password\": \"$PORTAINER_PASSWORD\"}" | jq -r .jwt)
+          
+          # Get the stack ID
+          STACK_ID=$(curl -s -H "Authorization: Bearer $JWT" "$PORTAINER_URL/api/stacks" | jq -r ".[] | select(.Name==\"$STACK_NAME\") | .Id")
+          
+          # Fetch the existing compose file of the stack
+          COMPOSE_FILE=$(curl -s -H "Authorization: Bearer $JWT" "$PORTAINER_URL/api/stacks/$STACK_ID/docker-compose" | jq -r '.StackFileContent')
+          
+          # Redeploy the stack with the fetched compose file
+          curl -X POST "$PORTAINER_URL/api/stacks/$STACK_ID?endpointId=$PORTAINER_ENDPOINT" \
+          -H "Authorization: Bearer $JWT" \
+          -H "accept: application/json" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"StackFileContent\": \"$COMPOSE_FILE\",
+            \"Env\": [],
+            \"Prune\": false,
+            \"PullImage\": true,
+          }"
