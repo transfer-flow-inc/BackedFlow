@@ -3,15 +3,19 @@ package fr.nil.backedflow;
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.entities.user.UserVerification;
 import fr.nil.backedflow.repositories.FileRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
+import fr.nil.backedflow.repositories.UserVerificationRepository;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.services.utils.FolderUtils;
-
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -36,21 +40,30 @@ class BackedFlowApplicationTests {
     public Logger logger = LoggerFactory.getLogger(BackedFlowApplicationTests.class);
     @Mock
     private FileRepository fileRepository;
+
     @Mock
     private FolderRepository folderRepository;
+
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserVerificationRepository userVerificationRepository;
+
     @Autowired
     private FileEncryptorDecryptor fileEncryptorDecryptor;
 
 
     @InjectMocks
     private User user;
+
     private FileUtils fileUtils;
     @InjectMocks
     private FileEntity fileEntity;
     @InjectMocks
     private Folder folder;
+    @InjectMocks
+    private UserVerification userVerification;
 
     @BeforeEach
     void setUp() {
@@ -78,6 +91,14 @@ class BackedFlowApplicationTests {
         Folder savedFolder = folderRepository.save(folder);
         Assertions.assertNotNull(savedFolder);
     }
+
+    @Test
+    void testSaveUserVerificationEntityToRepository() {
+        when(userVerificationRepository.save(any(UserVerification.class))).thenReturn(userVerification);
+        UserVerification savedUserVerification = userVerificationRepository.save(userVerification);
+        Assertions.assertNotNull(savedUserVerification);
+    }
+
     @Test
     void testRandomURL()
     {
