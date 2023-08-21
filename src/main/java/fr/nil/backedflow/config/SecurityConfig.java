@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,7 +35,9 @@ private final AuthenticationProvider authenticationProvider;
      * @param httpSecurity the HTTP security object to configure
      * @return the security filter chain
      * @throws Exception if an error occurs while configuring the security filter chain
-     */
+     **/
+    /*
+    @Deprecated
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
@@ -45,7 +47,7 @@ private final AuthenticationProvider authenticationProvider;
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**","/api/v1/folder/download/**")
+                .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/verify/**")
                 .permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
                 .permitAll()
@@ -61,6 +63,8 @@ private final AuthenticationProvider authenticationProvider;
         return httpSecurity.build();
     }
 
+
+     */
     /**
      * Configures the CORS configuration for HTTP requests.
      *
@@ -83,4 +87,24 @@ private final AuthenticationProvider authenticationProvider;
         return source;
     }
 
+    /**
+     * Configures the security filter chain for HTTP requests.
+     *
+     * @param httpSecurity the HTTP security object to configure
+     * @return the security filter chain
+     * @throws Exception if an error occurs while configuring the security filter chain
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, CorsConfigurationSource corsConfigurationSource) throws Exception {
+        httpSecurity
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/verify/**", "/v3/api-docs/**", "/swagger-ui/**")
+                        .permitAll()
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return httpSecurity.build();
+    }
 }
