@@ -44,8 +44,8 @@ public class AuthenticationService {
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID}")
-    private String googleSSOClientID = "979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com";
+    @Value("${TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID:979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com}")
+    private String googleSSOClientID;
 
     /**
      * Registers a new user with the provided information.
@@ -138,26 +138,26 @@ public class AuthenticationService {
     {
 
         // Check if the Azp is equals to the stored clientID, to avoid faking a SSO login to the app via another google sso login
-        if (!Objects.equals(request.getInfo().getAzp(), googleSSOClientID)) {
+        if (!Objects.equals(request.getAzp(), googleSSOClientID)) {
             log.debug("The azp is not equal to the stored ClientID");
             throw new InvalidSSOLoginRequest();
         }
-        if (!Objects.equals(request.getInfo().getAzp(), request.getInfo().getAud())) {
+        if (!Objects.equals(request.getAzp(), request.getAud())) {
             log.debug("Mismatch in azp and aud");
             throw new InvalidSSOLoginRequest();
         }
 
         User user = User.builder()
-                .firstName(request.getInfo().getFirstName())
-                .lastName(request.getInfo().getLastName())
-                .mail(request.getInfo().getEmail())
-                .password(passwordEncoder.encode(request.getInfo().getJti()))
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .mail(request.getEmail())
+                .password(passwordEncoder.encode(request.getJti()))
                 .isAccountVerified(true)
                 .role(Role.USER)
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .build();
 
-        if (!userRepository.existsByMail(request.getInfo().getEmail()))
+        if (!userRepository.existsByMail(request.getEmail()))
             userRepository.save(user);
 
         Map<String, Object> extraClaims = new HashMap<>();
