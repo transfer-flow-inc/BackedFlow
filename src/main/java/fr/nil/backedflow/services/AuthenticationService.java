@@ -10,10 +10,10 @@
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
     import fr.nil.backedflow.entities.user.UserVerification;
-    import fr.nil.backedflow.event.AccountCreationEvent;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
     import lombok.RequiredArgsConstructor;
+    import lombok.extern.slf4j.Slf4j;
     import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.kafka.core.KafkaTemplate;
@@ -30,6 +30,7 @@
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
 
 
@@ -137,11 +138,14 @@ public class AuthenticationService {
     {
 
         // Check if the Azp is equals to the stored clientID, to avoid faking a SSO login to the app via another google sso login
-        if(!Objects.equals(request.getAzp(), googleSSOClientID))
+        if (!Objects.equals(request.getAzp(), googleSSOClientID)) {
+            log.debug("The azp is not equal to the stored ClientID");
             throw new InvalidSSOLoginRequest();
-
-        if(!Objects.equals(request.getAzp(), request.getAud()))
+        }
+        if (!Objects.equals(request.getAzp(), request.getAud())) {
+            log.debug("Mismatch in azp and aud");
             throw new InvalidSSOLoginRequest();
+        }
 
         User user = User.builder()
                 .firstName(request.getFirstName())
