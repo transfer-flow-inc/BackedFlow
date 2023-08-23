@@ -42,6 +42,10 @@ public class AuthenticationService {
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID}")
+    private String googleSSOClientID = "979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com";
+
     /**
      * Registers a new user with the provided information.
      *
