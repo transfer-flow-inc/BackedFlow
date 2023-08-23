@@ -59,7 +59,7 @@ public class AuthenticationService {
                 .isAccountVerified(false)
                 .build();
 
-
+        user = userRepository.save(user);
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("authMethod", "spring_database");
         extraClaims.put("firstName", user.getFirstName());
@@ -69,7 +69,7 @@ public class AuthenticationService {
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
         extraClaims.put("plan", user.getPlan().getName());
-        user = userRepository.save(user);
+
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
 
