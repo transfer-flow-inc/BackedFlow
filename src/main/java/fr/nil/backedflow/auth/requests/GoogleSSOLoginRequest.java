@@ -73,7 +73,7 @@ public class GoogleSSOLoginRequest {
      * @return The last name of the user.
      */
     public String getLastName() {
-        return this.name.split(" ")[1];
-    }
 
+        return (this.name.split(" ").length <= 1) ? " " : this.name.split(" ")[1];
+    }
 }
