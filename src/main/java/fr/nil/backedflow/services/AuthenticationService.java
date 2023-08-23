@@ -138,26 +138,26 @@ public class AuthenticationService {
     {
 
         // Check if the Azp is equals to the stored clientID, to avoid faking a SSO login to the app via another google sso login
-        if (!Objects.equals(request.getAzp(), googleSSOClientID)) {
+        if (!Objects.equals(request.getInfo().getAzp(), googleSSOClientID)) {
             log.debug("The azp is not equal to the stored ClientID");
             throw new InvalidSSOLoginRequest();
         }
-        if (!Objects.equals(request.getAzp(), request.getAud())) {
+        if (!Objects.equals(request.getInfo().getAzp(), request.getInfo().getAud())) {
             log.debug("Mismatch in azp and aud");
             throw new InvalidSSOLoginRequest();
         }
 
         User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .mail(request.getEmail())
-                .password(passwordEncoder.encode(request.getJti()))
+                .firstName(request.getInfo().getFirstName())
+                .lastName(request.getInfo().getLastName())
+                .mail(request.getInfo().getEmail())
+                .password(passwordEncoder.encode(request.getInfo().getJti()))
                 .isAccountVerified(true)
                 .role(Role.USER)
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .build();
 
-        if(!userRepository.existsByMail(request.getEmail()))
+        if (!userRepository.existsByMail(request.getInfo().getEmail()))
             userRepository.save(user);
 
         Map<String, Object> extraClaims = new HashMap<>();
