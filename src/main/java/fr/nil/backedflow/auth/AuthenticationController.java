@@ -1,6 +1,8 @@
 package fr.nil.backedflow.auth;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.nil.backedflow.auth.exceptions.EmailAlreadyUsedException;
 import fr.nil.backedflow.auth.exceptions.InvalidEmailException;
 import fr.nil.backedflow.auth.exceptions.InvalidUsernameException;
@@ -79,13 +81,23 @@ public class AuthenticationController {
     /**
      * Handles a user authentication request using Google's SSO login.
      *
-     * @param request The SSO login request to be processed.
+     * @param rawRequest The SSO login request to be processed.
      * @return A response containing the authentication token for the authenticated user.
      */
     @PostMapping("/google")
-    public ResponseEntity<AuthenticationResponse> authenticateWithGoogle(@RequestBody GoogleSSOLoginRequest request)
+    public ResponseEntity<AuthenticationResponse> authenticateWithGoogle(@RequestBody String rawRequest)
     {
-        return ResponseEntity.ok(authenticationService.authenticateViaSSO(request));
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        try {
+            GoogleSSOLoginRequest request = objectMapper.readValue(rawRequest, GoogleSSOLoginRequest.class);
+            return ResponseEntity.ok(authenticationService.authenticateViaSSO(request));
+
+        } catch (JsonProcessingException e) {
+            // Handle the exception
+            e.printStackTrace();
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     /**
