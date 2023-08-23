@@ -10,10 +10,12 @@
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
     import fr.nil.backedflow.entities.user.UserVerification;
+    import fr.nil.backedflow.event.AccountCreationEvent;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
     import lombok.RequiredArgsConstructor;
     import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.beans.factory.annotation.Value;
     import org.springframework.kafka.core.KafkaTemplate;
     import org.springframework.security.authentication.AuthenticationManager;
     import org.springframework.security.authentication.BadCredentialsException;
@@ -40,6 +42,10 @@ public class AuthenticationService {
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID}")
+    private String googleSSOClientID = "979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com";
+
     /**
      * Registers a new user with the provided information.
      *
@@ -111,13 +117,13 @@ public class AuthenticationService {
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
+        extraClaims.put("plan", user.getPlan().getName());
+
 
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
-    //@Value("${pumper.api.auth.sso.google.client.id}")
-    private String googleSSOClientID;
 
     /**
      * Authenticates a user using Google SSO.
@@ -144,6 +150,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getJti()))
                 .isAccountVerified(true)
                 .role(Role.USER)
+                .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .build();
 
         if(!userRepository.existsByMail(request.getEmail()))
@@ -157,6 +164,7 @@ public class AuthenticationService {
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
+        extraClaims.put("plan", user.getPlan().getName());
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();

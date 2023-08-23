@@ -61,7 +61,7 @@ public class UserService {
                         existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
                     }
                     userRepository.save(existingUser);
-                    if(!passwordEncoder.matches(oldPassword, existingUser.getPassword()))
+                    if (passwordEncoder.matches(oldPassword, existingUser.getPassword()))
                         return authenticationService.authenticate(AuthenticationRequest.builder().email(email).password(updatedUser.getPassword()).build());
 
                     return authenticationService.authenticate(AuthenticationRequest.builder().email(email).password(oldPassword).build());
