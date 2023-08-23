@@ -1,6 +1,7 @@
 package fr.nil.backedflow.entities.user;
 
 import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.plan.Plan;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,6 +34,9 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    private Plan plan;
 
     private String avatar;
     private Boolean isAccountVerified;

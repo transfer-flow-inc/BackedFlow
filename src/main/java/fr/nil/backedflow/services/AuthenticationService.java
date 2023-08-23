@@ -6,9 +6,11 @@
     import fr.nil.backedflow.auth.requests.GoogleSSOLoginRequest;
     import fr.nil.backedflow.auth.requests.RegisterRequest;
     import fr.nil.backedflow.auth.responses.AuthenticationResponse;
+    import fr.nil.backedflow.entities.plan.PlanType;
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
     import fr.nil.backedflow.entities.user.UserVerification;
+    import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
     import lombok.RequiredArgsConstructor;
     import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ public class AuthenticationService {
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
     private final UserVerificationService userVerificationService;
+    private final PlanRepository planRepository;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -52,9 +55,11 @@ public class AuthenticationService {
                 .mail(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
+                .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .isAccountVerified(false)
                 .build();
 
+        user = userRepository.save(user);
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("authMethod", "spring_database");
         extraClaims.put("firstName", user.getFirstName());
@@ -63,8 +68,9 @@ public class AuthenticationService {
         extraClaims.put("userRole", user.getRole());
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
+        extraClaims.put("plan", user.getPlan().getName());
 
-        user = userRepository.save(user);
+
         String jwtToken = jwtService.generateToken(extraClaims,user);
 
         UserVerification userVerification = userVerificationService.generateVerificationToken(user);
