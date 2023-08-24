@@ -58,6 +58,9 @@ public class GoogleSSOLoginRequest {
 
     private String jti;
 
+    @JsonProperty
+    private String picture;
+
     /**
      * Gets the first name of the user based on the "name" field.
      *

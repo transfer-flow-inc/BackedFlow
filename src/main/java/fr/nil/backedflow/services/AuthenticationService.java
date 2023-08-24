@@ -64,6 +64,7 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .isAccountVerified(false)
+                .avatar("logo_dark.png")
                 .build();
 
         user = userRepository.save(user);
@@ -76,6 +77,8 @@ public class AuthenticationService {
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
         extraClaims.put("plan", user.getPlan().getName());
+        extraClaims.put("avatar", user.getAvatar());
+
 
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
@@ -119,6 +122,7 @@ public class AuthenticationService {
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
         extraClaims.put("plan", user.getPlan().getName());
+        extraClaims.put("avatar", user.getAvatar());
 
 
 
@@ -154,6 +158,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getJti()))
                 .isAccountVerified(true)
                 .role(Role.USER)
+                .avatar(request.getPicture())
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .build();
 
@@ -169,6 +174,8 @@ public class AuthenticationService {
         extraClaims.put("userID", user.getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
         extraClaims.put("plan", user.getPlan().getName());
+        extraClaims.put("avatar", user.getAvatar());
+
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();
