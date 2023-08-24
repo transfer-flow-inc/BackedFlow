@@ -1,9 +1,10 @@
 package fr.nil.backedflow.services;
 
 import fr.nil.backedflow.auth.requests.AuthenticationRequest;
+import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.exceptions.InvalidRequestException;
+import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.repositories.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Data
@@ -41,56 +43,52 @@ public class UserService {
     }
 
 
-    public AuthenticationResponse updateUserByEmail(String email, String oldPassword, User updatedUser) {
+    public AuthenticationResponse updateUser(String mail, UserUpdateRequest updateRequest, String oldPassword) throws PasswordMismatchException {
+        Optional<User> optionalUser = userRepository.findByMail(mail);
 
-        return userRepository.findByMail(email)
-                .map(existingUser -> {
-                    if (!passwordEncoder.matches(oldPassword, existingUser.getPassword()))
-                        throw new InvalidRequestException("updateUserByEmail, the password is incorrect.");
+        if (!optionalUser.isPresent()) {
+            throw new UsernameNotFoundException(mail);
+        }
 
-                    if (updatedUser.getFirstName() != null) {
-                        existingUser.setFirstName(updatedUser.getFirstName());
-                    }
-                    if (updatedUser.getLastName() != null) {
-                        existingUser.setLastName(updatedUser.getLastName());
-                    }
-                    if (updatedUser.getMail() != null) {
-                        existingUser.setMail(updatedUser.getMail());
-                    }
-                    if (updatedUser.getPassword() != null || !updatedUser.getPassword().equals("null")) {
-                        existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-                    }
-                    userRepository.save(existingUser);
-                    if (passwordEncoder.matches(oldPassword, existingUser.getPassword()))
-                        return authenticationService.authenticate(AuthenticationRequest.builder().email(email).password(updatedUser.getPassword()).build());
+        User user = optionalUser.get();
+        log.warn("Yo wtf : " + oldPassword + " upass " + user.getPassword() + " doespassmatch ? " + passwordEncoder.matches(oldPassword, user.getPassword()));
 
-                    return authenticationService.authenticate(AuthenticationRequest.builder().email(email).password(oldPassword).build());
-                })
-                .orElseThrow(() -> new UsernameNotFoundException(email));
+        if (oldPassword != null && !passwordEncoder.matches(oldPassword, user.getPassword()))
+            throw new PasswordMismatchException();
+
+
+        if (updateRequest.getFirstName() != null) {
+            log.debug("firstName will be updated from this request");
+            user.setFirstName(updateRequest.getFirstName());
+                    }
+
+        if (updateRequest.getLastName() != null) {
+            log.debug("lastName will be updated from this request");
+            user.setLastName(updateRequest.getLastName());
+        }
+
+        if (updateRequest.getMail() != null) {
+            log.debug("mail will be updated from this request ");
+            user.setMail(updateRequest.getMail());
+                    }
+
+        if (updateRequest.getPassword() != null) {
+            log.debug("Password will be updated from this request");
+            user.setPassword(passwordEncoder.encode(updateRequest.getPassword()));
+                    }
+
+        userRepository.save(user);
+
+        log.warn("Yo wtf b4 if: " + oldPassword);
+
+        if (oldPassword != null && !passwordEncoder.matches(oldPassword, user.getPassword()))
+            return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(updateRequest.getPassword()).build());
+        log.warn("Yo wtf after if : " + oldPassword);
+        return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(oldPassword).build());
+
     }
-/*
-    public User updateUserByEmail(String email, User updatedUser) {
 
-        return userRepository.findByMail(email)
-                .map(existingUser -> {
-                    if (updatedUser.getFirstName() != null) {
-                        existingUser.setFirstName(updatedUser.getFirstName());
-                    }
-                    if (updatedUser.getLastName() != null) {
-                        existingUser.setLastName(updatedUser.getLastName());
-                    }
-                    if (updatedUser.getMail() != null) {
-                        existingUser.setMail(updatedUser.getMail());
-                    }
-                    if (updatedUser.getPassword() != null) {
-                        existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-                    }
-                    return userRepository.save(existingUser);
-                })
-                .orElseThrow(() -> new UsernameNotFoundException(email));
-    }
-    *
- */
+
     public void deleteUserByEmail(String email) {
 
         userRepository.deleteByMail(email);

@@ -1,8 +1,6 @@
 package fr.nil.backedflow.controllers;
 
 import fr.nil.backedflow.entities.Folder;
-import org.springframework.core.io.FileSystemResource;
-import fr.nil.backedflow.exceptions.AccessKeyException;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.services.files.FileService;
@@ -11,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,7 +44,7 @@ public class FolderController {
 
 
     @PostMapping("/upload")
-    public ResponseEntity<?> multipleFileUpload(@RequestParam("files") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL,HttpServletRequest request) {
+    public ResponseEntity<?> multipleFileUpload(@RequestParam("file") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL, HttpServletRequest request) {
 
         return folderService.handleMultipleFileUpload(files, folderURL, request);
     }
