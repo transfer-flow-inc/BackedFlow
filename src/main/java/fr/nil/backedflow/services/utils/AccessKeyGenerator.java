@@ -16,6 +16,15 @@ public class AccessKeyGenerator {
         return stringBuilder.toString();
     }
 
+    public static String generateAccessKey() {
+        Random random = new Random();
+        StringBuilder stringBuilder = new StringBuilder(64);
+
+        for (int i = 0; i < 64; i++) {
+            stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+        }
+        return stringBuilder.toString();
+    }
     public static String generateVerificationToken() {
         Random random = new Random();
         StringBuilder stringBuilder = new StringBuilder(64);
