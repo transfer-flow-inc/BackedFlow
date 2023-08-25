@@ -3,6 +3,7 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.repositories.FolderRepository;
+import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,6 +43,13 @@ public class FolderController {
         return ResponseEntity.ok(folder);
     }
 
+
+    @PostMapping("/")
+    public ResponseEntity<Folder> createEmptyFolder(@RequestBody FolderCreationRequest folderCreationRequest, HttpServletRequest request) {
+
+        return ResponseEntity.ok().body(folderService.createEmptyFolder(folderCreationRequest, request));
+
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<?> multipleFileUpload(@RequestParam("file") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL, HttpServletRequest request) {

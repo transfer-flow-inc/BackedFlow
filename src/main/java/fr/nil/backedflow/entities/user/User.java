@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.plan.Plan;
 import jakarta.persistence.*;
@@ -30,6 +31,7 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     private String mail;
+    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)

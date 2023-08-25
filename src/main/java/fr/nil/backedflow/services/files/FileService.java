@@ -15,11 +15,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-
-
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.FileInputStream;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -36,7 +34,7 @@ public class FileService {
 
     private final Logger logger = LoggerFactory.getLogger(FileService.class);
 
-    @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE}")
+    @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE:7}")
     private int expiryDate = 7;
 
     private final FileEntityRepository fileRepository;

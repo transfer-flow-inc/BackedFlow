@@ -8,7 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -32,7 +35,7 @@ public class Folder {
     @ElementCollection
     private List<String> recipientsEmails;
     private String url;
-
+    private String message;
     @JsonIgnore
     private String accessKey;
 
