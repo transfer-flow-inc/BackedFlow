@@ -47,7 +47,7 @@ public class AuthenticationService {
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
 
-    @Value("${TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID:979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com}")
+    @Value("${transferflow.auth.sso.google.client.id:979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com}")
     private String googleSSOClientID;
 
     /**
