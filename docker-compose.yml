@@ -45,7 +45,22 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=false
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - TZ=UTC
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/:/etc/prometheus/
+      - ./data/prometheus/:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 networks:
     grafana-graphite-network:
+
 volumes:
   dbdata:
+
