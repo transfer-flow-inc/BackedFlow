@@ -12,6 +12,8 @@
     import fr.nil.backedflow.entities.user.UserVerification;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
+    import fr.nil.backedflow.stats.MetricsEnum;
+    import io.micrometer.core.instrument.MeterRegistry;
     import lombok.RequiredArgsConstructor;
     import lombok.extern.slf4j.Slf4j;
     import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserVerificationService userVerificationService;
     private final PlanRepository planRepository;
+    private final MeterRegistry meterRegistry;
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -82,7 +85,7 @@ public class AuthenticationService {
 
 
         String jwtToken = jwtService.generateToken(extraClaims,user);
-
+        meterRegistry.counter(MetricsEnum.USER_CREATION_COUNT.getMetricName()).increment();
         UserVerification userVerification = userVerificationService.generateVerificationToken(user);
 /*
         kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
@@ -125,7 +128,7 @@ public class AuthenticationService {
         extraClaims.put("avatar", user.getAvatar());
 
 
-
+        meterRegistry.counter(MetricsEnum.USER_LOGIN_COUNT.getMetricName()).increment();
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
@@ -176,7 +179,7 @@ public class AuthenticationService {
         extraClaims.put("plan", user.getPlan().getName());
         extraClaims.put("avatar", user.getAvatar());
 
-
+        meterRegistry.counter(MetricsEnum.USER_SSO_LOGIN_COUNT.getMetricName()).increment();
         String jwtToken = jwtService.generateToken(extraClaims,user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
