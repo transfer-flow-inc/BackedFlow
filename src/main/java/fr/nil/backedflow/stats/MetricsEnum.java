@@ -18,7 +18,7 @@ public enum MetricsEnum {
 
     ERROR_HANDLER_COUNT("backedflow.error.handler.count");
 
-    private String metricName;
+    private final String metricName;
 
 
     MetricsEnum(String s) {
