@@ -6,6 +6,8 @@ import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
+import fr.nil.backedflow.stats.MetricsEnum;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ public class FolderController {
     private final FolderRepository folderRepository;
     private final FileService fileService;
     private final FolderService folderService;
+    private final MeterRegistry meterRegistry;
 
     @GetMapping("/{id}")
     public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id) {
@@ -43,6 +46,7 @@ public class FolderController {
         return ResponseEntity.ok(folder);
     }
 
+    // todo Get folder by URL for front-end
 
     @PostMapping("/")
     public ResponseEntity<Folder> createEmptyFolder(@RequestBody FolderCreationRequest folderCreationRequest, HttpServletRequest request) {
@@ -75,7 +79,7 @@ public class FolderController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
-
+        meterRegistry.counter(MetricsEnum.FILE_TRANSFER_DOWNLOAD_COUNT.getMetricName()).increment();
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(zipFile.length())
