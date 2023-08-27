@@ -1,6 +1,8 @@
 package fr.nil.backedflow.stats;
 
+import lombok.Getter;
 
+@Getter
 public enum MetricsEnum {
 
     USER_CREATION_COUNT("backedflow.user.register.count"),
@@ -23,7 +25,5 @@ public enum MetricsEnum {
         this.metricName = s;
     }
 
-    public String getMetricName() {
-        return metricName;
-    }
+
 }
