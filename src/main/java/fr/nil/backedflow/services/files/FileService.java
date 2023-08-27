@@ -6,6 +6,8 @@ import fr.nil.backedflow.repositories.FileEntityRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.utils.FileUtils;
+import fr.nil.backedflow.stats.MetricsEnum;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -37,6 +39,8 @@ public class FileService {
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE:7}")
     private int expiryDate = 7;
 
+    private final MeterRegistry meterRegistry;
+
     private final FileEntityRepository fileRepository;
     private final FolderRepository folderRepository;
     private final FileUtils fileUtils = new FileUtils();
@@ -62,6 +66,27 @@ public class FileService {
         .fileName(file.getName())
         .isArchive(fileUtils.isFileArchive(file))
                 .build();
+        meterRegistry.counter(MetricsEnum.FILE_TRANSFER_UPLOAD_COUNT.getMetricName()).increment();
+
+        //  meterRegistry.gauge(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(),file.length() != 0 ? file.length() / 1024.0 : 0);
+
+        /*
+        long fileSize = file.length();
+        Gauge.builder(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(), file, fileL -> fileSize / (1024.0 * 1024.0))
+                .tag("fileID", String.valueOf(fileEntity.getId()))
+               // .strongReference(true)
+                .register(meterRegistry);
+
+
+
+        Gauge.builder(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(), () -> {
+                    long fileSize = file.length(); // Get the current file size being uploaded
+                    return fileSize / (1024.0 * 1024.0); // Convert to megabytes if needed
+                })
+                .register(meterRegistry);
+
+        System.out.println(file.length());
+*/
         return fileRepository.save(fileEntity);
 
     }
