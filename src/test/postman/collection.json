@@ -61,10 +61,9 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{ baseURL}}/api/v1/auth/register",
-							"protocol": "http",
+							"raw": "{{baseURL}}/api/v1/auth/register",
 							"host": [
-								"{{ baseURL}}"
+								"{{baseURL}}"
 							],
 							"path": [
 								"api",
@@ -122,16 +121,128 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{ baseURL}}/api/v1/auth/authenticate",
-							"protocol": "http",
+							"raw": "{{baseURL}}/api/v1/auth/authenticate",
 							"host": [
-								"{{ baseURL}}"
+								"{{baseURL}}"
 							],
 							"path": [
 								"api",
 								"v1",
 								"auth",
 								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains a token\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('token');",
+									"        pm.environment.set(\"authToken\", pm.response.json().token);",
+									"",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\n    \"firstName\": \"PassChanged\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v1/user/{{email}}?oldPassword={{password}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"{{email}}"
+							],
+							"query": [
+								{
+									"key": "oldPassword",
+									"value": "{{password}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login using Google SSO",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains a token\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('token');",
+									"        //pm.environment.set(\"authToken\", pm.response.json().token);",
+									"",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{   \n    \"sub\":\"117151916294514197463\",\n    \"email\":\"thibaultbruhatpro@gmail.com\",\n    \"name\":\"Thibault Bruhat\",\n    \"azp\": \"979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com\",\n    \"aud\": \"979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com\",\n    \"jti\": \"545aff9cf6ba429a5c254e8ca254f02d7b6d3969\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v1/auth/google",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"google"
 							]
 						}
 					},
@@ -143,7 +254,261 @@
 			"name": "Folder",
 			"item": [
 				{
-					"name": "Upload file to database",
+					"name": "Generate new empty folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is a JSON object\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});",
+									"",
+									"pm.test(\"Response contains a non-empty ID\", function () {",
+									"    pm.expect(pm.response.json().id).to.not.be.empty;",
+									"    pm.environment.set(\"folderID\", pm.response.json().id);",
+									"});",
+									"",
+									"pm.test(\"Reponse contains a non-empty URL for the folder\", function () {",
+									"    pm.expect(pm.response.json().url).to.not.be.empty;",
+									"    pm.environment.set(\"folderURL\", pm.response.json.url)",
+									"});",
+									"",
+									"",
+									"pm.test(\"Folder owner has a non-empty ID\", function () {",
+									"    const responseData = pm.response.json();",
+									"",
+									"    pm.expect(responseData.folderOwner).to.exist.and.to.be.an('object');",
+									"    pm.expect(responseData.folderOwner.id).to.exist.and.to.have.lengthOf.at.least(1, \"ID should not be empty\");",
+									"",
+									"    pm.environment.set(\"userID\", responseData.folderOwner.id);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\n    \"folderName\": \"Test\",\n    \"recipientsEmails\": [\"test@test.fr\",\"coucou@coucou.fr\"]\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v1/folder/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a Folder object from the Folder ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains an id\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('id');",
+									"});",
+									"",
+									"pm.test(\"Response contains a fileEntityList\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
+									"});",
+									"",
+									"pm.test(\"Response contains a folderOwner\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('folderOwner');",
+									"});",
+									"pm.test(\"Response contains a url\", function(){",
+									"    pm.expect(pm.response.json()).to.have.property('url')",
+									"    pm.environment.set(\"folderURL\", pm.response.json().url)",
+									"",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v1/folder/{{folderID}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								"{{folderID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a Folder object from the Folder URL",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains an id\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('id');",
+									"});",
+									"",
+									"pm.test(\"Response contains a fileEntityList\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
+									"});",
+									"",
+									"pm.test(\"Response contains a folderOwner\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('folderOwner');",
+									"});",
+									"pm.test(\"Response contains a url\", function(){",
+									"    pm.expect(pm.response.json()).to.have.property('url')",
+									"    pm.environment.set(\"folderURL\", pm.response.json().url)",
+									"",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v1/folder/url/{{folderURL}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								"url",
+								"{{folderURL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all folders from userID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains multiple objects or one\", function () {",
+									"    var response = pm.response.json();",
+									"    pm.expect(response).to.be.an('array');",
+									"    pm.expect(response.length).to.be.at.least(1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v1/user/folders/{{userID}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"user",
+								"folders",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Files",
+			"item": [
+				{
+					"name": "Upload files to database",
 					"event": [
 						{
 							"listen": "test",
@@ -161,30 +526,30 @@
 									"});",
 									"",
 									"pm.test(\"Response contains folder and accessKey objects\", function () {",
-									"    var jsonData = pm.response.json();",
+									"    var jsonData = pm.response.json().body;",
 									"",
 									"    pm.expect(jsonData).to.have.property('folder');",
 									"    pm.expect(jsonData).to.have.property('accessKey');",
 									"});",
 									"",
 									"pm.test(\"The folder object has a non-empty fileEntityList\", function () {",
-									"    var jsonData = pm.response.json();",
+									"    var jsonData = pm.response.json().body;",
 									"    var fileEntityList = jsonData.folder.fileEntityList;",
 									"",
 									"    pm.expect(fileEntityList).to.be.an('array').that.is.not.empty;",
 									"});",
 									"",
 									"pm.test(\"The folder object has an id\", function () {",
-									"    var jsonData = pm.response.json();",
+									"    var jsonData = pm.response.json().body;",
 									"    var folderId = jsonData.folder.id;",
 									"",
 									"    pm.expect(folderId).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0);",
 									"});",
 									"",
 									"pm.test(\"Adding object value to environment for further testing\", function () {",
-									"    pm.environment.set(\"folderID\", response.folder.id);",
-									"    pm.environment.set(\"folderURL\", response.folder.url);",
-									"    pm.environment.set(\"accessKey\", response.accessKey);",
+									"    pm.environment.set(\"folderID\", response.body.folder.id);",
+									"    pm.environment.set(\"folderURL\", response.body.folder.url);",
+									"    pm.environment.set(\"accessKey\", response.body.accessKey);",
 									"});",
 									"",
 									""
@@ -213,20 +578,31 @@
 									"key": "file",
 									"type": "file",
 									"src": "./src/test/postman/testFile.txt"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [],
+									"disabled": true
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [],
+									"disabled": true
 								}
 							]
 						},
 						"url": {
-							"raw": "http://{{ baseURL}}/api/v1/folder/upload",
-							"protocol": "http",
+							"raw": "{{baseURL}}/api/v1/file/{{folderID}}",
 							"host": [
-								"{{ baseURL}}"
+								"{{baseURL}}"
 							],
 							"path": [
 								"api",
 								"v1",
-								"folder",
-								"upload"
+								"file",
+								"{{folderID}}"
 							],
 							"query": [
 								{
@@ -240,18 +616,18 @@
 					"response": []
 				},
 				{
-					"name": "Download all file from folder",
+					"name": "Download all file from folderURL",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
 									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
+									"pm.response.to.have.status(200);",
 									"});",
 									"",
 									"pm.test(\"Response has content-type header of mime/application-octet\", function () {",
-									"    pm.expect(pm.response.headers.get('content-type')).to.include('application/octet-stream');",
+									"pm.expect(pm.response.headers.get('content-type')).to.include('application/octet-stream');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -259,23 +635,12 @@
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://{{ baseURL}}/api/v1/folder/download/{{folderURL}}?accessKey={{accessKey}}",
-							"protocol": "http",
+							"raw": "{{baseURL}}/api/v1/folder/download/{{folderURL}}?accessKey={{accessKey}}",
 							"host": [
-								"{{ baseURL}}"
+								"{{baseURL}}"
 							],
 							"path": [
 								"api",
@@ -289,126 +654,6 @@
 									"key": "accessKey",
 									"value": "{{accessKey}}"
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get a random Folder entity from DB",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response is a JSON object\", function () {",
-									"    pm.response.to.be.json;",
-									"});",
-									"",
-									"pm.test(\"Response contains an id property\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('id');",
-									"    pm.environment.set(\"folderID\", pm.response.json().id);",
-									"});",
-									"",
-									"pm.test(\"Response contains a fileEntityList property\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
-									"});",
-									"",
-									"pm.test(\"Response contains a folderOwner object\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('folderOwner').that.is.an('object');",
-									"});",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://{{ baseURL}}/api/v1/test/folder/random",
-							"protocol": "http",
-							"host": [
-								"{{ baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"test",
-								"folder",
-								"random"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get a Folder object from the Folder ID",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains an id\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('id');",
-									"});",
-									"",
-									"pm.test(\"Response contains a fileEntityList\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
-									"});",
-									"",
-									"pm.test(\"Response contains a folderOwner\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('folderOwner');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://{{ baseURL}}/api/v1/folder/{{folderID}}",
-							"protocol": "http",
-							"host": [
-								"{{ baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								"{{folderID}}"
 							]
 						}
 					},
