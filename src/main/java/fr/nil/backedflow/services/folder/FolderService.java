@@ -141,12 +141,11 @@ public class FolderService {
 
         Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).get();
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
-        System.out.println(user.getRole().equals(Role.ADMIN));
 
         if (user.getRole().equals(Role.ADMIN))
             return ResponseEntity.ok(requestedFolder);
 
-        if (requestedFolder.getFolderOwner().getId() != user.getId())
+        if (!Objects.equals(requestedFolder.getFolderOwner().getId().toString(), user.getId().toString()))
             return ResponseEntity.badRequest().build();
 
         return ResponseEntity.ok(requestedFolder);
@@ -159,7 +158,6 @@ public class FolderService {
 
         if (user.getRole().equals(Role.ADMIN))
             return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
-
         if (!Objects.equals(user.getId().toString(), userID))
             return ResponseEntity.badRequest().build();
 
