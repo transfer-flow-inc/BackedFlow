@@ -33,10 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @RequiredArgsConstructor
@@ -153,6 +150,21 @@ public class FolderService {
             return ResponseEntity.badRequest().build();
 
         return ResponseEntity.ok(requestedFolder);
+
+    }
+
+    @SneakyThrows
+    public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
+        User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
+
+        if (user.getRole().equals(Role.ADMIN))
+            return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
+
+        if (!Objects.equals(user.getId().toString(), userID))
+            return ResponseEntity.badRequest().build();
+
+
+        return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
 
     }
 
