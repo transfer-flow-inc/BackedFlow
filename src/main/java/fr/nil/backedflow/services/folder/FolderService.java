@@ -152,20 +152,6 @@ public class FolderService {
 
     }
 
-    @SneakyThrows
-    public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
-        User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
-
-        if (user.getRole().equals(Role.ADMIN))
-            return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
-        if (!Objects.equals(user.getId().toString(), userID))
-            return ResponseEntity.badRequest().build();
-
-
-        return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
-
-    }
-
     public Folder addFolderToDatabase(User user, String folderURL) {
         Folder folder = Folder.builder()
                 .id(UUID.randomUUID())
@@ -221,23 +207,6 @@ public class FolderService {
         return folderRepository.save(folder);
     }
 
-    @SneakyThrows
-    public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL, HttpServletRequest request) {
-        if (folderRepository.getFolderByUrl(folderURL).isEmpty())
-            return ResponseEntity.notFound().build();
-
-        Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).get();
-        User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
-
-        if (user.getRole().equals(Role.ADMIN))
-            return ResponseEntity.ok(requestedFolder);
-
-        if (!Objects.equals(requestedFolder.getFolderOwner().getId().toString(), user.getId().toString()))
-            return ResponseEntity.badRequest().build();
-
-        return ResponseEntity.ok(requestedFolder);
-
-    }
 
     @SneakyThrows
     public ResponseEntity<List<FolderResponse>> getAllFolderByUserID(String userID, HttpServletRequest request) {
