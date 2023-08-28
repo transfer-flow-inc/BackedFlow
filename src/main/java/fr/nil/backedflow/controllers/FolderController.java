@@ -47,6 +47,12 @@ public class FolderController {
     }
 
     // todo Get folder by URL for front-end
+    @GetMapping("/url/{folderURL}")
+    public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
+        System.out.println(folderURL);
+        return folderService.handleGetFolderURLRequest(folderURL, request);
+
+    }
 
     @GetMapping("/url/{folderURL}")
     public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
