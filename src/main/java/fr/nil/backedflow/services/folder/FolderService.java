@@ -2,6 +2,7 @@ package fr.nil.backedflow.services.folder;
 
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.UserNotFoundException;
 import fr.nil.backedflow.manager.StorageManager;
@@ -32,10 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @RequiredArgsConstructor
@@ -190,5 +188,23 @@ public class FolderService {
         folder.setFileCount(folder.getFileEntityList().size());
         folder.setFolderSize(folder.getFileEntityList().stream().mapToLong(FileEntity::getFileSize).sum());
         return folderRepository.save(folder);
+    }
+
+    @SneakyThrows
+    public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL, HttpServletRequest request) {
+        if (folderRepository.getFolderByUrl(folderURL).isEmpty())
+            return ResponseEntity.notFound().build();
+
+        Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).get();
+        User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
+
+        if (user.getRole().equals(Role.ADMIN))
+            return ResponseEntity.ok(requestedFolder);
+
+        if (!Objects.equals(requestedFolder.getFolderOwner().getId().toString(), user.getId().toString()))
+            return ResponseEntity.badRequest().build();
+
+        return ResponseEntity.ok(requestedFolder);
+
     }
 }

@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -17,12 +19,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.concurrent.Executor;
+
 /**
  This is the application configuration class.
  It configures and provides necessary beans to the application.
  */
 @Configuration
 @EnableScheduling
+@EnableAsync
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
@@ -82,5 +87,16 @@ public class ApplicationConfig {
     @Bean
     public MeterRegistryCustomizer<MeterRegistry> commonTags() {
         return r -> r.config().commonTags("application", "backedflow");
+    }
+
+    @Bean(name = "taskExecutor")
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("poolThread-");
+        executor.initialize();
+        return executor;
     }
 }
