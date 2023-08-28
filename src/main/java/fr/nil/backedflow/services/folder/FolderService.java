@@ -209,16 +209,20 @@ public class FolderService {
     }
 
     @SneakyThrows
-    public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
+    public ResponseEntity<List<FolderResponse>> getAllFolderByUserID(String userID, HttpServletRequest request) {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
+        List<FolderResponse> folderResponses = new ArrayList<>();
+        folderRepository.findAllByFolderOwner(UUID.fromString(userID)).forEach(folder ->
+                folderResponses.add(FolderResponse.builder().folder(folder).accessKey(folder.getAccessKey()).build()));
+
         if (user.getRole().equals(Role.ADMIN))
-            return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
+            return ResponseEntity.ok(folderResponses);
         if (!Objects.equals(user.getId().toString(), userID))
             return ResponseEntity.badRequest().build();
 
 
-        return ResponseEntity.ok(folderRepository.findAllByFolderOwner(UUID.fromString(userID)));
+        return ResponseEntity.ok(folderResponses);
 
     }
 
