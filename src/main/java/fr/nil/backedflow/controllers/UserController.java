@@ -6,6 +6,7 @@ import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.InvalidRequestException;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
+import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +28,7 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
     private final FolderService folderService;
-
+  
     @PatchMapping("/{email}")
     public ResponseEntity<AuthenticationResponse> updateUserById(@PathVariable(value = "email", required = true) String email, @RequestParam(value = "oldPassword", required = false) String oldPassword, @RequestBody UserUpdateRequest userUpdateRequest, Authentication authentication) throws PasswordMismatchException {
         String userEmail = authentication.getName();
@@ -44,13 +45,12 @@ public class UserController {
     }
 
     @GetMapping("/folders/{userID}")
-    public ResponseEntity<List<Folder>> getAllFoldersByUserID(@PathVariable(value = "userID") String userID, HttpServletRequest request) {
-
+    public ResponseEntity<List<FolderResponse>> getAllFoldersByUserID(@PathVariable(value = "userID") String userID, HttpServletRequest request) {
         return folderService.getAllFolderByUserID(userID, request);
     }
 
 
-
+  
     @DeleteMapping("/{email}")
     public void deleteUserByEmail(@PathVariable(value = "email", required = true) String email, Authentication authentication) {
         String userEmail = authentication.getName();
