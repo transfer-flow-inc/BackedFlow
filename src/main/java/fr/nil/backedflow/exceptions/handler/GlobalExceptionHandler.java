@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
         logger.debug("Exception happened during a HTTP request : ");
         exception.printStackTrace();
         meterRegistry.counter(MetricsEnum.ERROR_HANDLER_COUNT.getMetricName()).increment();
-        return new ResponseEntity<>("Well that's cringe, something wrong happened try refresh or contact admin@transfer-flow.com", HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>("Well that's cringe, something wrong happened try refresh or contact admin@transfer-flow. (Exception Message: " + exception.getMessage() + ").", HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 }

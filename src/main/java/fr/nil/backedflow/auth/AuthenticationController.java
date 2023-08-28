@@ -71,7 +71,7 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request)
     {
         if(!request.getEmail().contains("@"))
-            throw new InvalidEmailException();
+            ResponseEntity.badRequest();
 
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
