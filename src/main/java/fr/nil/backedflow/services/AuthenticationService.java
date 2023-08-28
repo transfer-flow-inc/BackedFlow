@@ -10,6 +10,7 @@
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
     import fr.nil.backedflow.entities.user.UserVerification;
+    import fr.nil.backedflow.event.AccountCreationEvent;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
     import fr.nil.backedflow.stats.MetricsEnum;
@@ -28,7 +29,6 @@
     import java.util.HashMap;
     import java.util.Map;
     import java.util.Objects;
-
 
 @Service
 @RequiredArgsConstructor
@@ -87,7 +87,7 @@ public class AuthenticationService {
         String jwtToken = jwtService.generateToken(extraClaims,user);
         meterRegistry.counter(MetricsEnum.USER_CREATION_COUNT.getMetricName()).increment();
         UserVerification userVerification = userVerificationService.generateVerificationToken(user);
-/*
+
         kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
                         .userID(user.getId().toString())
                         .userName(user.getFirstName() + " " + user.getLastName())
@@ -95,9 +95,6 @@ public class AuthenticationService {
                         .validationToken(userVerification.verificationToken)
                 .build());
 
-
-
- */
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
 
