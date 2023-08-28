@@ -1,6 +1,5 @@
 package fr.nil.backedflow.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.nil.backedflow.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,19 +23,30 @@ public class Folder {
     @Id
     @GeneratedValue()
     private UUID id;
+
     private String folderName;
+
     private Long folderSize;
+
     private int fileCount;
+
     private boolean isPrivate;
+
     private boolean isShared;
+
     private int folderViews;
+
     private Date uploaded_at;
+
     private Date expires_at;
+
     @ElementCollection
     private List<String> recipientsEmails;
+
     private String url;
+
     private String message;
-    @JsonIgnore
+
     private String accessKey;
 
     @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
