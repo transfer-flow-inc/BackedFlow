@@ -42,9 +42,10 @@ public class FolderController {
             throw new FolderNotFoundException("get");
 
         Folder folder = folderRepository.findById(UUID.fromString(id)).get();
-
+        folder.setAccessKey(null);
         return ResponseEntity.ok(folder);
     }
+
 
     // todo Get folder by URL for front-end
     @GetMapping("/url/{folderURL}")
@@ -53,14 +54,12 @@ public class FolderController {
         return folderService.handleGetFolderURLRequest(folderURL, request);
 
     }
-
     @PostMapping("/")
     public ResponseEntity<Folder> createEmptyFolder(@RequestBody FolderCreationRequest folderCreationRequest, HttpServletRequest request) {
 
         return ResponseEntity.ok().body(folderService.createEmptyFolder(folderCreationRequest, request));
 
     }
-
     @PostMapping("/upload")
     public ResponseEntity<?> multipleFileUpload(@RequestParam("file") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL, HttpServletRequest request) {
 

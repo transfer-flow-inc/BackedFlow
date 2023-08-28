@@ -6,7 +6,6 @@ import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.InvalidRequestException;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
-import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +44,7 @@ public class UserController {
     }
 
     @GetMapping("/folders/{userID}")
-    public ResponseEntity<List<FolderResponse>> getAllFoldersByUserID(@PathVariable(value = "userID") String userID, HttpServletRequest request) {
+    public ResponseEntity<List<Folder>> getAllFoldersByUserID(@PathVariable(value = "userID") String userID, HttpServletRequest request) {
         return folderService.getAllFolderByUserID(userID, request);
     }
 
