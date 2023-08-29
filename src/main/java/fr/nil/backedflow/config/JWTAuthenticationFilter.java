@@ -2,7 +2,6 @@ package fr.nil.backedflow.config;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.nil.backedflow.services.JWTService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
@@ -84,6 +82,7 @@ private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFi
 
 
         } catch (Exception exception){
+            exception.printStackTrace();
             logger.error("Error logging in : {} ", exception.getMessage());
             response.setHeader("error",exception.getMessage());
             response.setStatus(INTERNAL_SERVER_ERROR.value());
