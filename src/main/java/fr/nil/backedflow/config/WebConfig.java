@@ -17,7 +17,9 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins("http://localhost:4200")
-                .allowedOrigins("http://192.168.1.18:4200")
+                .allowedOrigins("http://192.168.140.93:4200")
+                .allowedOrigins("http://192.168.140.15:9006")
+
                 .allowedOrigins("http://api.transfer-flow.studio")
                 .allowedOrigins("http://api.transfer-flow.studio")
                 .allowedOrigins("https://api.transfer-flow.studio")
