@@ -20,7 +20,6 @@ public class FileController {
     public ResponseEntity<?> singleFileUpload(@RequestParam("file") MultipartFile file, @PathVariable String folderID, HttpServletRequest request) {
 
         return ResponseEntity.ok(folderService.handleSingleFileUpload(file, UUID.fromString(folderID), request));
-
     }
 
 }
