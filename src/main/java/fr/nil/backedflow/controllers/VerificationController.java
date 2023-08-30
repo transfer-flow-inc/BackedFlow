@@ -1,6 +1,7 @@
 package fr.nil.backedflow.controllers;
 
 
+import fr.nil.backedflow.reponses.AccountVerificationResponse;
 import fr.nil.backedflow.services.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +20,10 @@ public class VerificationController {
     @GetMapping()
     public ResponseEntity<?> verifyUserAccount(@RequestParam(value = "token") String token) {
         if (token.isEmpty())
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(AccountVerificationResponse.builder().isAccountVerified(false).build());
+
         if (userVerificationService.checkVerificationToken(token))
-            return ResponseEntity.ok("Account is now verified.");
+            return ResponseEntity.ok(AccountVerificationResponse.builder().isAccountVerified(true));
 
         return ResponseEntity.internalServerError().body("Something went wrong during the account verification (token: " + token + ")");
     }
