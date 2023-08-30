@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface FolderRepository extends JpaRepository<Folder, UUID> {
 
         @Query("SELECT f from Folder f WHERE f.folderOwner.id = :userId")
-        List<Folder> findAllByFolderOwner(@Param("userId") UUID userId);
+        Optional<List<Folder>> findAllByFolderOwner(@Param("userId") UUID userId);
 
         Optional<Folder> getFolderByUrl(@Param("url") String url);
 
