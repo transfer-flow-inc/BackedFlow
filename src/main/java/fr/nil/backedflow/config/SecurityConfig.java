@@ -97,7 +97,7 @@ private final AuthenticationProvider authenticationProvider;
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/verify/**")
+                .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/folder/url/**", "/api/v1/verify/**")
                 .permitAll()
                 .requestMatchers("/actuator/**")
                 .permitAll()
