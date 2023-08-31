@@ -570,7 +570,7 @@
 								{
 									"key": "file",
 									"type": "file",
-									"src": "testfile.txt"
+									"src": "./src/test/postman/testFile.txt"
 								},
 								{
 									"key": "files",
