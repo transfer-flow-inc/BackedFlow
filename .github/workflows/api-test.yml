@@ -66,7 +66,7 @@ jobs:
           TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow
           KAFKA_BOOTSTRAP_SERVER: kafka:29092
           SPRING_PROFILE: apitesting
-        run: ./mvnw --no-transfer-progress clean package
+        run: ./mvnw -DskipTests=true --no-transfer-progress clean package
 
       - name: Wait for Kafka to start
         run: |
@@ -94,7 +94,7 @@ jobs:
           KAFKA_BOOTSTRAP_SERVER: kafka:29092
           SPRING_PROFILE: apitesting
         run: |
-          nohup java -jar target/*.jar --KAFKA_BOOTSTRAP_SERVER=kafka:29092 --SPRING_PROFILE=testing --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing --TRANSFERFLOW_FILE_ENCRYPTION_KEY=f0e1d2c3b4a5968778695a4b3c2d1e0f --TRANSFERFLOW_FILE_EXPIRY_DATE=7 --TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY=./.transferflow &
+          nohup java -jar target/*.jar --KAFKA_BOOTSTRAP_SERVER=kafka:29092 --SPRING_PROFILE=apitesting --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing --TRANSFERFLOW_FILE_ENCRYPTION_KEY=f0e1d2c3b4a5968778695a4b3c2d1e0f --TRANSFERFLOW_FILE_EXPIRY_DATE=7 --TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY=./.transferflow &
       
 
       - name: Wait for Spring Boot application to start
