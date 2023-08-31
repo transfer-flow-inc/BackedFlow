@@ -29,8 +29,9 @@
     import java.util.HashMap;
     import java.util.Map;
     import java.util.Objects;
+    import java.util.UUID;
 
-@Service
+    @Service
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationService {
@@ -152,6 +153,7 @@ public class AuthenticationService {
         }
 
         User user = User.builder()
+                .id(UUID.randomUUID())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .mail(request.getEmail())
