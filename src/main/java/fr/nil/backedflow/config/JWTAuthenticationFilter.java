@@ -55,6 +55,7 @@ private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFi
         }
 
         // Extract the JWT token from the Authorization header
+            System.out.println(authHeader);
         jwtToken = authHeader.substring(7);
         userMail = jwtService.extractUsernameFromToken(jwtToken);
         if (userMail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
