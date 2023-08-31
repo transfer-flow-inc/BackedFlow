@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,8 +48,10 @@ public class FolderService {
     private final FileService fileService;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
-
     private Logger logger = LoggerFactory.getLogger(FolderService.class);
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
 
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE:7}")
     private int expiryDate;
@@ -169,7 +172,13 @@ public class FolderService {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
         logger.debug("Creating a new folder with the name : " + creationRequest.getFolderName() + " requested by userID : " + user.getId());
+/*
+        logger.debug("Sending notification mail to all recipients");
+        kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()
+                .folderMessage(creationRequest.getMessage())
+                .build());
 
+ */
         return folderRepository.save(Folder.builder()
                 .folderName(creationRequest.getFolderName())
                 .folderOwner(user)
