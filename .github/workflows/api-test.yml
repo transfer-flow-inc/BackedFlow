@@ -18,25 +18,6 @@ jobs:
           --health-timeout=5s
           --health-retries=3
 
-      kafka:
-        image: confluentinc/cp-kafka:latest
-        env:
-          KAFKA_BROKER_ID: 1
-          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
-          KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-          KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-        ports:
-          - 29092:29092
-      zookeeper:
-        image: confluentinc/cp-zookeeper:latest
-        env:
-          ZOOKEEPER_CLIENT_PORT: 2181
-          ZOOKEEPER_TICK_TIME: 2000
-        ports:
-          - "2181:2181"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -68,19 +49,6 @@ jobs:
           SPRING_PROFILE: apitesting
         run: ./mvnw -DskipTests=true --no-transfer-progress clean package
 
-      - name: Wait for Kafka to start
-        run: |
-          for i in {1..60}; do
-            if nc -z localhost 29092; then
-              echo "Kafka is ready"
-              break
-            fi
-            echo "Waiting for Kafka to start..."
-            sleep 5
-          done
-
-
-
       - name: "Start Spring Boot application"
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true
@@ -91,14 +59,13 @@ jobs:
           TRANSFERFLOW_FILE_ENCRYPTION_KEY: f0e1d2c3b4a5968778695a4b3c2d1e0f
           TRANSFERFLOW_FILE_EXPIRY_DATE: 7
           TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow
-          KAFKA_BOOTSTRAP_SERVER: kafka:29092
           SPRING_PROFILE: apitesting
         run: |
-          nohup java -jar target/*.jar --KAFKA_BOOTSTRAP_SERVER=kafka:29092 --SPRING_PROFILE=apitesting --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing --TRANSFERFLOW_FILE_ENCRYPTION_KEY=f0e1d2c3b4a5968778695a4b3c2d1e0f --TRANSFERFLOW_FILE_EXPIRY_DATE=7 --TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY=./.transferflow &
+          nohup java -jar target/*.jar --SPRING_PROFILE=apitesting --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing --TRANSFERFLOW_FILE_ENCRYPTION_KEY=f0e1d2c3b4a5968778695a4b3c2d1e0f --TRANSFERFLOW_FILE_EXPIRY_DATE=7 --TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY=./.transferflow &
       
 
       - name: Wait for Spring Boot application to start
-        run: sleep 15
+        run: sleep 7
 
       - name: Check if port 80 is open
         uses: nrukavkov/open-ports-check-action@v1
