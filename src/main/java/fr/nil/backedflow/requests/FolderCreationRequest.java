@@ -15,6 +15,8 @@ import java.util.List;
 public class FolderCreationRequest {
 
     private String folderName;
+    private Long folderSize;
+    private int fileCount;
     private List<String> recipientsEmails;
     private String message;
 }
