@@ -17,6 +17,7 @@
     import io.micrometer.core.instrument.MeterRegistry;
     import lombok.RequiredArgsConstructor;
     import lombok.extern.slf4j.Slf4j;
+    import org.springframework.beans.factory.annotation.Autowired;
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.kafka.core.KafkaTemplate;
     import org.springframework.security.authentication.AuthenticationManager;
@@ -28,6 +29,7 @@
     import java.util.HashMap;
     import java.util.Map;
     import java.util.Objects;
+    import java.util.UUID;
 
     @Service
 @RequiredArgsConstructor
@@ -43,8 +45,8 @@ public class AuthenticationService {
     private final PlanRepository planRepository;
     private final MeterRegistry meterRegistry;
 
-
-        private final KafkaTemplate<String, Object> kafkaTemplate;
+    @Autowired
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${transferflow.auth.sso.google.client.id:979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com}")
     private String googleSSOClientID;
@@ -151,6 +153,7 @@ public class AuthenticationService {
         }
 
         User user = User.builder()
+                .id(UUID.randomUUID())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .mail(request.getEmail())
@@ -162,7 +165,7 @@ public class AuthenticationService {
                 .build();
 
         if (!userRepository.existsByMail(request.getEmail()))
-            user = userRepository.save(user);
+            userRepository.save(user);
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("authMethod", "google_sso");
