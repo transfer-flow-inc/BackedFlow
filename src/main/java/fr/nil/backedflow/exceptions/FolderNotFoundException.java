@@ -4,7 +4,11 @@ public class FolderNotFoundException extends RuntimeException{
 
 
     public FolderNotFoundException(String action) {
-        super("Can't " + action + ", the request folder is not found.");
+        super(action);
+    }
+
+    public FolderNotFoundException() {
+        super("The requested folder can't be found");
     }
 }
 

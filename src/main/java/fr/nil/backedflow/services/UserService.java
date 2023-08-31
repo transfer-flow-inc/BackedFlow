@@ -79,18 +79,15 @@ public class UserService {
 
         userRepository.save(user);
 
-        log.warn("Yo wtf b4 if: " + oldPassword);
 
         if (oldPassword != null && !passwordEncoder.matches(oldPassword, user.getPassword()))
             return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(updateRequest.getPassword()).build());
-        log.warn("Yo wtf after if : " + oldPassword);
-        return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(oldPassword).build());
 
+        return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(oldPassword).build());
     }
 
 
     public void deleteUserByEmail(String email) {
-
         userRepository.deleteByMail(email);
     }
 
