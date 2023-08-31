@@ -193,6 +193,7 @@ public class FolderService {
 
         logger.debug("Sending notification mail to all recipients");
         kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()
+                .senderName(user.getFirstName() + " " + user.getLastName())
                 .folderMessage(creationRequest.getMessage())
                 .folderSize(folder.getFolderSize())
                 .downloadURL("https://transfer-flow.studio/telechargement/" + folder.getUrl() + "/" + folder.getAccessKey())
