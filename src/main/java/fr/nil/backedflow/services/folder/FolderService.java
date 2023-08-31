@@ -4,6 +4,7 @@ import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.event.TransferNotificationEvent;
 import fr.nil.backedflow.exceptions.*;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.reponses.FolderResponse;
@@ -172,16 +173,12 @@ public class FolderService {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
         logger.debug("Creating a new folder with the name : " + creationRequest.getFolderName() + " requested by userID : " + user.getId());
-/*
-        logger.debug("Sending notification mail to all recipients");
-        kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()
-                .folderMessage(creationRequest.getMessage())
-                .build());
 
- */
-        return folderRepository.save(Folder.builder()
+        Folder folder = folderRepository.save(Folder.builder()
                 .folderName(creationRequest.getFolderName())
                 .folderOwner(user)
+                .folderSize(creationRequest.getFolderSize())
+                .fileCount(creationRequest.getFileCount())
                 .accessKey(AccessKeyGenerator.generateAccessKey())
                 .isPrivate(false)
                 .isShared(true)
@@ -194,6 +191,18 @@ public class FolderService {
                 .build());
 
 
+        logger.debug("Sending notification mail to all recipients");
+        kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()
+                .senderName(user.getFirstName() + " " + user.getLastName())
+                .folderMessage(creationRequest.getMessage())
+                .folderSize(folder.getFolderSize())
+                .downloadURL("https://transfer-flow.studio/telechargement/" + folder.getUrl() + "/" + folder.getAccessKey())
+                .fileCount(folder.getFileCount())
+                .folderMessage(!folder.getMessage().isEmpty() ? folder.getMessage() : "Pas de message joint au transfer")
+                .recipientsEmails(folder.getRecipientsEmails())
+                .build());
+
+        return folder;
     }
 
     public Folder addFilesToFolder(Folder folder, List<FileEntity> files) {
