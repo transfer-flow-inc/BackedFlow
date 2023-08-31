@@ -3,8 +3,7 @@ on: [pull_request]
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     services:
       mysql:
         image: mysql:8
@@ -29,6 +28,13 @@ jobs:
           java-version: '18'
           distribution: adopt
 
+      - name: Use Node.js 18
+        uses: actions/setup-node@v1
+
+      - name: Install newman
+        run: |
+          npm install -g newman
+
       - name: Build application
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true
@@ -39,10 +45,9 @@ jobs:
           TRANSFERFLOW_FILE_ENCRYPTION_KEY: f0e1d2c3b4a5968778695a4b3c2d1e0f
           TRANSFERFLOW_FILE_EXPIRY_DATE: 7
           TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow
-          GRAPHITE_PORT: 1002
-          GRAPHITE_ADDRESS: localhost
-          SPRING_PROFILE: testing
-        run: ./mvnw --no-transfer-progress clean package
+          KAFKA_BOOTSTRAP_SERVER: kafka:29092
+          SPRING_PROFILE: apitesting
+        run: ./mvnw -DskipTests=true --no-transfer-progress clean package
 
       - name: "Start Spring Boot application"
         env:
@@ -54,11 +59,9 @@ jobs:
           TRANSFERFLOW_FILE_ENCRYPTION_KEY: f0e1d2c3b4a5968778695a4b3c2d1e0f
           TRANSFERFLOW_FILE_EXPIRY_DATE: 7
           TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow
-          GRAPHITE_PORT: 1002
-          GRAPHITE_ADDRESS: localhost
-          SPRING_PROFILE: testing
+          SPRING_PROFILE: apitesting
         run: |
-          nohup java -jar target/*.jar --SPRING_PROFILE=testing --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing --TRANSFERFLOW_FILE_ENCRYPTION_KEY=f0e1d2c3b4a5968778695a4b3c2d1e0f --TRANSFERFLOW_FILE_EXPIRY_DATE=7 --TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY=./.transferflow &
+          nohup java -jar target/*.jar --SPRING_PROFILE=apitesting --SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true --SPRING_DATASOURCE_USERNAME=root --SPRING_DATASOURCE_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} --TRANSFERFLOW_API_GOOGLE_CLIENT_ID=test --TRANSFERFLOW_API_TOKEN_SECRET_KEY=${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }} --SPRING_PROFILE=testing --TRANSFERFLOW_FILE_ENCRYPTION_KEY=f0e1d2c3b4a5968778695a4b3c2d1e0f --TRANSFERFLOW_FILE_EXPIRY_DATE=7 --TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY=./.transferflow &
       
 
       - name: Wait for Spring Boot application to start
@@ -74,5 +77,5 @@ jobs:
           reverse: 'false'
 
       - name: Run API Tests
-        run: newman run ./src/test/postman/collection.json -e ./src/test/postman/env.json
+        run: newman run --verbose ./src/test/postman/collection.json -e ./src/test/postman/env.json
 
