@@ -12,7 +12,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -44,8 +43,8 @@ public class FileService {
     private final FileEntityRepository fileRepository;
     private final FolderRepository folderRepository;
     private final FileUtils fileUtils = new FileUtils();
-    @Autowired
-    public FileEncryptorDecryptor fileEncryptorDecryptor;
+
+    private final FileEncryptorDecryptor fileEncryptorDecryptor;
     private final UserRepository userRepository;
 
     // Save file to storage as well as adding the FileEntity to DB

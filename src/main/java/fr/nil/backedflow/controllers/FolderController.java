@@ -2,6 +2,7 @@ package fr.nil.backedflow.controllers;
 
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
+import fr.nil.backedflow.exceptions.InvalidTokenException;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.files.FileService;
@@ -14,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +40,6 @@ public class FolderController {
     public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id) {
         if (folderRepository.findById(UUID.fromString(id)).isEmpty())
             throw new FolderNotFoundException("get");
-
         Folder folder = folderRepository.findById(UUID.fromString(id)).get();
         folder.setAccessKey(null);
         return ResponseEntity.ok(folder);
@@ -50,7 +49,6 @@ public class FolderController {
     // todo Get folder by URL for front-end
     @GetMapping("/url/{folderURL}")
     public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
-        System.out.println(folderURL);
         return folderService.handleGetFolderURLRequest(folderURL, request);
 
     }
@@ -72,13 +70,13 @@ public class FolderController {
     @GetMapping("/download/{folderURL}")
     public ResponseEntity<?> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException{
         if(accessKey.isEmpty())
-            return new ResponseEntity<>("Invalid access key!", HttpStatus.FORBIDDEN);
+            throw new InvalidTokenException();
         if(!folderRepository.existsByUrl(folderURL))
             throw new FolderNotFoundException("get");
         Folder folder = folderRepository.getFolderByUrl(folderURL).get();
 
         if(!accessKey.equals(folder.getAccessKey()))
-            return new ResponseEntity<>("Invalid access key!", HttpStatus.FORBIDDEN);
+            throw new InvalidTokenException();
 
         File zipFile = fileService.getZippedFiles(folder.getFileEntityList());
 

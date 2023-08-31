@@ -1,6 +1,7 @@
 package fr.nil.backedflow.controllers;
 
 
+import fr.nil.backedflow.exceptions.InvalidTokenException;
 import fr.nil.backedflow.reponses.AccountVerificationResponse;
 import fr.nil.backedflow.requests.AccountVerificationRequest;
 import fr.nil.backedflow.services.UserVerificationService;
@@ -21,12 +22,12 @@ public class VerificationController {
     @PostMapping()
     public ResponseEntity<AccountVerificationResponse> verifyUserAccount(@RequestBody(required = true) AccountVerificationRequest token) {
         if (token.getToken().isEmpty())
-            return ResponseEntity.badRequest().body(AccountVerificationResponse.builder().isAccountVerified(false).build());
+            throw new InvalidTokenException();
 
         if (userVerificationService.checkVerificationToken(token.getToken()))
             return ResponseEntity.ok(AccountVerificationResponse.builder().isAccountVerified(true).build());
 
-        return ResponseEntity.badRequest().body(AccountVerificationResponse.builder().isAccountVerified(false).build());
+        throw new InvalidTokenException();
     }
 
 }

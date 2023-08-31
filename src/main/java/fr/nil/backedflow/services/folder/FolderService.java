@@ -4,7 +4,7 @@ import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.exceptions.UserNotFoundException;
+import fr.nil.backedflow.exceptions.*;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.repositories.FolderRepository;
@@ -105,12 +105,12 @@ public class FolderService {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
         if (folderRepository.findById(folderUUID).isEmpty())
-            ResponseEntity.badRequest().body("Can't find the folder by the requested UUID");
+            throw new FolderNotFoundException();
 
         Folder targetFolder = folderRepository.findById(folderUUID).get();
 
         if (file.isEmpty())
-            return ResponseEntity.badRequest().body("Can't upload an empty file (fileSize:" + file.getSize() + ")");
+            throw new FileEmptyUploadException();
 
         try {
             // Save the file to a temporary location
@@ -130,7 +130,7 @@ public class FolderService {
             // Handle exceptions appropriately,
             logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
             logger.debug(Arrays.toString(e.getStackTrace()));
-            return ResponseEntity.badRequest().body("Something went wrong during the file upload please try again later");
+            throw new FileUploadException();
 
         }
         return ResponseEntity.ok(FolderResponse.builder().folder(targetFolder).accessKey(targetFolder.getAccessKey()).build());
@@ -141,7 +141,7 @@ public class FolderService {
     public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL, HttpServletRequest request) {
 
         if (folderRepository.getFolderByUrl(folderURL).isEmpty())
-            return ResponseEntity.notFound().build();
+            throw new FolderNotFoundException("The requested folder cannot be found by URL");
 
         Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).get();
         requestedFolder.setAccessKey(null);
@@ -166,7 +166,7 @@ public class FolderService {
         return folderRepository.save(folder);
     }
 
-    @SneakyThrows
+
     public Folder createEmptyFolder(FolderCreationRequest creationRequest, HttpServletRequest request) {
 
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
@@ -211,7 +211,6 @@ public class FolderService {
     }
 
 
-    @SneakyThrows
     public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
         Optional<List<Folder>> folderList = folderRepository.findAllByFolderOwner(UUID.fromString(userID));
@@ -222,7 +221,7 @@ public class FolderService {
         if (user.getRole().equals(Role.ADMIN))
             return ResponseEntity.ok(folderList.get());
         if (!Objects.equals(user.getId().toString(), userID))
-            return ResponseEntity.badRequest().build();
+            throw new UnauthorizedFolderAccessException();
 
 
         return ResponseEntity.ok(folderList.get());
