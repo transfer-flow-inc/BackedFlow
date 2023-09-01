@@ -1,5 +1,4 @@
-package fr.nil.backedflow.requests;
-
+package fr.nil.backedflow.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,11 +11,12 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class FolderCreationRequest {
+public class TransferNotificationEvent {
 
-    private String folderName;
-    private Long folderSize;
+    private String senderName;
     private int fileCount;
+    private float folderSize;
+    private String folderMessage;
+    private String downloadURL;
     private List<String> recipientsEmails;
-    private String message;
 }

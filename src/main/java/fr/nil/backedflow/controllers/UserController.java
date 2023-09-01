@@ -4,8 +4,8 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
-import fr.nil.backedflow.exceptions.InvalidRequestException;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
+import fr.nil.backedflow.exceptions.UnauthorizedUserAccessException;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +38,7 @@ public class UserController {
             return ResponseEntity.ok(userService.updateUser(email, userUpdateRequest, oldPassword));
 
         if (!userEmail.equals(email))
-            throw new InvalidRequestException("You are not authorized to delete this account");
+            throw new UnauthorizedUserAccessException("You are not authorized to update this account");
 
         return ResponseEntity.ok(userService.updateUser(email, userUpdateRequest, oldPassword));
     }
@@ -58,7 +58,7 @@ public class UserController {
             userService.deleteUserByEmail(email);
 
         if (!userEmail.equals(email))
-            throw new InvalidRequestException("You are not authorized to delete this account");
+            throw new UnauthorizedUserAccessException("You are not authorized to delete this account");
 
         userService.deleteUserByEmail(email);
         logger.debug("The account with the email : " + email + " has been deleted.");

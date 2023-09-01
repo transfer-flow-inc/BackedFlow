@@ -4,7 +4,8 @@ import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.exceptions.UserNotFoundException;
+import fr.nil.backedflow.event.TransferNotificationEvent;
+import fr.nil.backedflow.exceptions.*;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.repositories.FolderRepository;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,8 +49,10 @@ public class FolderService {
     private final FileService fileService;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
-
     private Logger logger = LoggerFactory.getLogger(FolderService.class);
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
 
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE:7}")
     private int expiryDate;
@@ -102,12 +106,12 @@ public class FolderService {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
         if (folderRepository.findById(folderUUID).isEmpty())
-            ResponseEntity.badRequest().body("Can't find the folder by the requested UUID");
+            throw new FolderNotFoundException();
 
         Folder targetFolder = folderRepository.findById(folderUUID).get();
 
         if (file.isEmpty())
-            return ResponseEntity.badRequest().body("Can't upload an empty file (fileSize:" + file.getSize() + ")");
+            throw new FileEmptyUploadException();
 
         try {
             // Save the file to a temporary location
@@ -127,7 +131,7 @@ public class FolderService {
             // Handle exceptions appropriately,
             logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
             logger.debug(Arrays.toString(e.getStackTrace()));
-            return ResponseEntity.badRequest().body("Something went wrong during the file upload please try again later");
+            throw new FileUploadException();
 
         }
         return ResponseEntity.ok(FolderResponse.builder().folder(targetFolder).accessKey(targetFolder.getAccessKey()).build());
@@ -138,7 +142,7 @@ public class FolderService {
     public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL, HttpServletRequest request) {
 
         if (folderRepository.getFolderByUrl(folderURL).isEmpty())
-            return ResponseEntity.notFound().build();
+            throw new FolderNotFoundException("The requested folder cannot be found by URL");
 
         Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).get();
         requestedFolder.setAccessKey(null);
@@ -163,16 +167,18 @@ public class FolderService {
         return folderRepository.save(folder);
     }
 
-    @SneakyThrows
+
     public Folder createEmptyFolder(FolderCreationRequest creationRequest, HttpServletRequest request) {
 
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
 
         logger.debug("Creating a new folder with the name : " + creationRequest.getFolderName() + " requested by userID : " + user.getId());
 
-        return folderRepository.save(Folder.builder()
+        Folder folder = folderRepository.save(Folder.builder()
                 .folderName(creationRequest.getFolderName())
                 .folderOwner(user)
+                .folderSize(creationRequest.getFolderSize())
+                .fileCount(creationRequest.getFileCount())
                 .accessKey(AccessKeyGenerator.generateAccessKey())
                 .isPrivate(false)
                 .isShared(true)
@@ -185,6 +191,18 @@ public class FolderService {
                 .build());
 
 
+        logger.debug("Sending notification mail to all recipients");
+        kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()
+                .senderName(user.getFirstName() + " " + user.getLastName())
+                .folderMessage(creationRequest.getMessage())
+                .folderSize(folder.getFolderSize())
+                .downloadURL("https://transfer-flow.studio/telechargement/" + folder.getUrl() + "/" + folder.getAccessKey())
+                .fileCount(folder.getFileCount())
+                .folderMessage(!folder.getMessage().isEmpty() ? folder.getMessage() : "Pas de message joint au transfer")
+                .recipientsEmails(folder.getRecipientsEmails())
+                .build());
+
+        return folder;
     }
 
     public Folder addFilesToFolder(Folder folder, List<FileEntity> files) {
@@ -202,7 +220,6 @@ public class FolderService {
     }
 
 
-    @SneakyThrows
     public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
         Optional<List<Folder>> folderList = folderRepository.findAllByFolderOwner(UUID.fromString(userID));
@@ -213,7 +230,7 @@ public class FolderService {
         if (user.getRole().equals(Role.ADMIN))
             return ResponseEntity.ok(folderList.get());
         if (!Objects.equals(user.getId().toString(), userID))
-            return ResponseEntity.badRequest().build();
+            throw new UnauthorizedFolderAccessException();
 
 
         return ResponseEntity.ok(folderList.get());

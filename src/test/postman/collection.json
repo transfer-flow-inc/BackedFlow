@@ -4,7 +4,7 @@
 		"name": "TransferFlow API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "24752067",
-		"_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&creator=24752067&source=collection_link"
+		"_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&source=collection_link&creator=24752067"
 	},
 	"item": [
 		{
@@ -171,7 +171,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\n    \"firstName\": \"PassChanged\"\n}",
+							"raw": "{\n\n    \"firstName\": \"test\",\n    \"lastName\": \"test\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -309,7 +309,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\n    \"folderName\": \"Test\",\n    \"recipientsEmails\": [\"test@test.fr\",\"coucou@coucou.fr\"]\n\n}",
+							"raw": "{\n\n    \"folderName\": \"Test\",\n    \"recipientsEmails\": [\"malhomme.nil@gmail.com\",\"thibaultbruhatpro@gmail.com\"],\n    \"message\":\"Guess who's the boss now oi ?\",\n    \"folderSize\": 46523,\n    \"fileCount\": 69\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -425,14 +425,7 @@
 					],
 					"request": {
 						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
+							"type": "noauth"
 						},
 						"method": "GET",
 						"header": [],
