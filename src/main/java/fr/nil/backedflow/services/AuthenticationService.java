@@ -170,8 +170,7 @@ public class AuthenticationService {
         extraClaims.put("lastName", user.getLastName());
         extraClaims.put("userEmail", user.getMail());
         extraClaims.put("userRole", user.getRole());
-        System.out.println("UserID to token : " + user.getId());
-        extraClaims.put("userID", user.getId());
+        extraClaims.put("userID", userRepository.save(user).getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
         extraClaims.put("plan", user.getPlan().getName());
         extraClaims.put("avatar", user.getAvatar());
