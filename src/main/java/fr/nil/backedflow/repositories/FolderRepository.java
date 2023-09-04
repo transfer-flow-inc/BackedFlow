@@ -20,4 +20,5 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
 
         boolean existsByUrl(@Param("url") String url);
 
+        void deleteAllByFolderOwnerMail(String email);
 }

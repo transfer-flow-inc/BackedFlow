@@ -57,6 +57,6 @@ public class Folder {
     )
     private List<FileEntity> fileEntityList = new ArrayList<>();;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     private User folderOwner;
 }

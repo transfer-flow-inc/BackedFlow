@@ -6,6 +6,8 @@ import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.repositories.UserRepository;
+import fr.nil.backedflow.repositories.UserVerificationRepository;
+import jakarta.persistence.EntityManager;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +24,11 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class UserService {
+    private final UserVerificationRepository userVerificationRepository;
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationService authenticationService;
-
+    private final EntityManager entityManager;
     private final UserRepository userRepository;
 
     public User createUser(User user) {
@@ -88,6 +91,8 @@ public class UserService {
 
 
     public void deleteUserByEmail(String email) {
+        userVerificationRepository.deleteByUserMail(email);
+        entityManager.flush();
         userRepository.deleteByMail(email);
     }
 

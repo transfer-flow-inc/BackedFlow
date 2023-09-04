@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>fr.nil</groupId>
 	<artifactId>BackedFlow</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.5.10</version>
 	<name>BackedFlow</name>
 	<description>BackedFlow</description>
 	<properties>
