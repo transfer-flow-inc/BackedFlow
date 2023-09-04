@@ -220,6 +220,30 @@ public class FolderService {
     }
 
 
+    public void handleDeleteFolder(String folderID, HttpServletRequest request) {
+        String userID = jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString());
+        Folder folder = folderRepository.getReferenceById(UUID.fromString(folderID));
+        User user = userRepository.findUserById(UUID.fromString(userID)).orElseThrow(UserNotFoundException::new);
+
+        if (user.getRole().equals(Role.ADMIN))
+            deleteFolder(folder);
+        if (!Objects.equals(user.getId().toString(), userID))
+            throw new UnauthorizedFolderAccessException();
+
+        deleteFolder(folder);
+
+    }
+
+    public void deleteFolder(Folder folder) {
+
+        User user = folder.getFolderOwner();
+        fileService.deleteFilesFromUserStorage(folder);
+        logger.debug("Removing folder %d from user %d", folder.getId(), folder.getFolderOwner().getId());
+        user.getUserFolders().remove(folder);
+        userRepository.save(user);
+        folderRepository.delete(folder);
+    }
+
     public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
         Optional<List<Folder>> folderList = folderRepository.findAllByFolderOwner(UUID.fromString(userID));

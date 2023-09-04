@@ -47,7 +47,7 @@ public class UserVerificationService {
 
             verifyUser(user);
 
-            userVerificationRepository.deleteById(userVerification.id);
+            userVerificationRepository.deleteById(userVerification.getId());
             log.debug("User account is now verified deleted the UserVerification Entity corresponding to this User");
 
             return true;
@@ -65,6 +65,7 @@ public class UserVerificationService {
 
             log.debug("Setting the user " + user.getId() + " account to verified.");
             user.setIsAccountVerified(true);
+            user.setUserVerification(null);
             userRepository.save(user);
             log.debug("The user " + user.getId() + " has been verified.");
 
@@ -81,8 +82,15 @@ public class UserVerificationService {
                 .user(user)
                 .verificationToken(AccessKeyGenerator.generateVerificationToken())
                 .build();
+
         log.debug("Saving the verification to the repository.");
-        return userVerificationRepository.save(userVerification);
+        userVerification = userVerificationRepository.save(userVerification);
+
+
+        user.setUserVerification(userVerification);
+        userRepository.save(user);
+
+        return userVerification;
     }
 
 

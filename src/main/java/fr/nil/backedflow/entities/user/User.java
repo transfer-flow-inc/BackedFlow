@@ -46,6 +46,9 @@ public class User implements UserDetails {
     @ManyToMany
     private List<Folder> userFolders;
 
+    @OneToOne(cascade = CascadeType.ALL)
+    private UserVerification userVerification;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
