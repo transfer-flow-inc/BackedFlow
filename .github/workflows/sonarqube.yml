@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-
+      
 services:
   mysql:
     image: mysql:8
@@ -21,6 +21,7 @@ services:
 jobs:
   build:
     name: Code analysis with SonarQube
+
     runs-on: ubuntu-latest
     permissions: read-all
     steps:
