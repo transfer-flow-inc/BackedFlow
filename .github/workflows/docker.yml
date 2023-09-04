@@ -31,9 +31,13 @@ jobs:
               "username": "${{ github.actor }}",
               "password": "${{ secrets.REGISTRY_PASSWORD }}"
             }]
-      - name: Install dependencies
-        run: sudo apt-get install jq
 
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
       - name: Preparing the Image build
         id: prep
