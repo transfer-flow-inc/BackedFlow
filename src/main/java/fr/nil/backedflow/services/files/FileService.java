@@ -92,6 +92,9 @@ public class FileService {
             logger.debug("File %d has been deleted", fileEntity.getFileName());
         });
 
+        folder.getFileEntityList().removeAll(folder.getFileEntityList());
+        folderRepository.save(folder);
+
         fileRepository.deleteAll(folder.getFileEntityList());
 
     }
