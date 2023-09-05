@@ -5,6 +5,7 @@ on:
     branches:
       - main
 
+
 services:
   mysql:
     image: mysql:8
@@ -47,4 +48,17 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/transfer_flow?createDatabaseIfNotExist=true
+          SPRING_DATASOURCE_USERNAME: root
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID: ${{ secrets.TRANSFERFLOW_API_AUTH_GOOGLE_CLIENT_ID }}
+          TRANSFERFLOW_API_TOKEN_SECRET_KEY: ${{ secrets.TRANSFERFLOW_API_TOKEN_SECRET_KEY }}
+          SPRING_PROFILE: testing
+          GRAPHITE_PORT: 1002
+          GRAPHITE_ADDRESS: localhost
+          TRANSFERFLOW_FILE_ENCRYPTION_KEY: f0e1d2c3b4a5968778695a4b3c2d1e0f
+          TRANSFERFLOW_FILE_EXPIRY_DATE: 7
+          TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow    
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=transfer-flow-inc_BackedFlow_AYpf9fILb4ZyWMENNQTJ -Dsonar.projectName='BackedFlow'
+
+

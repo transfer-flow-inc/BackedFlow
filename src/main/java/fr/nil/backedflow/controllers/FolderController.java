@@ -55,6 +55,7 @@ public class FolderController {
 
     }
 
+
     @GetMapping("/url/{folderURL}")
     public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
         return folderService.handleGetFolderURLRequest(folderURL, request);
@@ -79,6 +80,7 @@ public class FolderController {
     @SneakyThrows
     @GetMapping("/download/{folderURL}")
     public ResponseEntity<StreamingResponseBody> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) {
+
         if (accessKey.isEmpty())
             throw new InvalidTokenException();
         if (!folderRepository.existsByUrl(folderURL))
@@ -93,7 +95,6 @@ public class FolderController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
-
         StreamingResponseBody stream;
         try (InputStream fileInputStream = new FileInputStream(zipFile)) {
             stream = outputStream -> {
