@@ -3,7 +3,6 @@ package fr.nil.backedflow.services.files;
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.FileDeletionException;
-import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.repositories.FileEntityRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
@@ -16,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -102,23 +102,6 @@ public class FileService {
 
     }
 
-
-    public void deleteFilesFromUserStorage(Folder folder) {
-        User user = userRepository.findUserById(folder.getFolderOwner().getId()).orElseThrow();
-
-        folder.getFileEntityList().forEach(fileEntity -> {
-            logger.debug("Deleting file %d", fileEntity.getFileName());
-            File file = new File(fileEntity.getFilePath());
-            file.delete();
-            logger.debug("File %d has been deleted", fileEntity.getFileName());
-        });
-
-        folder.getFileEntityList().removeAll(folder.getFileEntityList());
-        folderRepository.save(folder);
-
-        fileRepository.deleteAll(folder.getFileEntityList());
-
-    }
 
     public boolean isFileExpired(FileEntity fileEntity)
     {
