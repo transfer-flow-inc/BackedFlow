@@ -12,6 +12,7 @@ import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.JWTService;
+import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
@@ -27,7 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,6 +53,7 @@ public class FolderService {
     private final FolderRepository folderRepository;
     private final EntityManager entityManager;
     private Logger logger = LoggerFactory.getLogger(FolderService.class);
+    private final UserService userService;
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -62,12 +63,12 @@ public class FolderService {
 
 
     @SneakyThrows
-    public ResponseEntity<?> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
+    public ResponseEntity<FolderResponse> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
     {
         if(folderURL == null)
             folderURL = FolderUtils.generateRandomURL();
 
-    User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer",""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
+        User user = userRepository.findUserById(userService.getUserIDFromRequest(request)).orElseThrow(UserNotFoundException::new);
 
     List<FileEntity> fileEntities = new ArrayList<>();
     Folder folder = addFolderToDatabase(user, folderURL);
@@ -93,10 +94,9 @@ public class FolderService {
             fileEntities.add(fileService.addFileEntity(finalPath.toFile()));
         } catch (Exception e) {
             // Handle exceptions appropriately,
-            logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
+            logger.error(String.format("An error occurred during the file upload (Error message : %s ).", e.getMessage()));
             logger.debug(Arrays.toString(e.getStackTrace()));
-            return ResponseEntity.badRequest().body("Something went wrong during the file upload please try again later");
-
+            throw new FileUploadException();
         }
 
     }
@@ -105,8 +105,8 @@ public class FolderService {
 }
 
     @SneakyThrows
-    public ResponseEntity<?> handleSingleFileUpload(MultipartFile file, @RequestParam UUID folderUUID, HttpServletRequest request) {
-        User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
+    public ResponseEntity<FolderResponse> handleSingleFileUpload(MultipartFile file, @RequestParam UUID folderUUID, HttpServletRequest request) {
+        User user = userRepository.findUserById(userService.getUserIDFromRequest(request)).orElseThrow(UserNotFoundException::new);
 
         if (folderRepository.findById(folderUUID).isEmpty())
             throw new FolderNotFoundException();
@@ -132,7 +132,7 @@ public class FolderService {
             addFileToFolder(targetFolder, fileService.addFileEntity(finalPath.toFile()));
         } catch (Exception e) {
             // Handle exceptions appropriately,
-            logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
+            logger.error(String.format("An error occurred during the file upload (Error message : %s ).", e.getMessage()));
             logger.debug(Arrays.toString(e.getStackTrace()));
             throw new FileUploadException();
 
@@ -147,7 +147,7 @@ public class FolderService {
         if (folderRepository.getFolderByUrl(folderURL).isEmpty())
             throw new FolderNotFoundException("The requested folder cannot be found by URL");
 
-        Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).get();
+        Folder requestedFolder = folderRepository.getFolderByUrl(folderURL).orElseThrow();
         requestedFolder.setAccessKey(null);
 
         return ResponseEntity.ok(requestedFolder);
@@ -161,8 +161,8 @@ public class FolderService {
                 .folderViews(0)
                 .url(folderURL)
                 .accessKey(AccessKeyGenerator.generateAccessKey(32))
-                .uploaded_at(Date.valueOf(LocalDate.now()))
-                .expires_at(Date.valueOf(LocalDate.now().plusDays(7)))
+                .uploadedAt(Date.valueOf(LocalDate.now()))
+                .expiresAt(Date.valueOf(LocalDate.now().plusDays(7)))
                 .isPrivate(false)
                 .isShared(true)
                 .build();
@@ -173,9 +173,9 @@ public class FolderService {
 
     public Folder createEmptyFolder(FolderCreationRequest creationRequest, HttpServletRequest request) {
 
-        User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
-
-        logger.debug("Creating a new folder with the name : " + creationRequest.getFolderName() + " requested by userID : " + user.getId());
+        User user = userRepository.findUserById(userService.getUserIDFromRequest(request)).orElseThrow(UserNotFoundException::new);
+        if (logger.isDebugEnabled())
+            logger.debug(String.format("Creating a new folder with the name : %s requested by userID : %s", creationRequest.getFolderName(), user.getId()));
 
         Folder folder = folderRepository.save(Folder.builder()
                 .folderName(creationRequest.getFolderName())
@@ -187,8 +187,8 @@ public class FolderService {
                 .isShared(true)
                 .folderViews(0)
                 .message(creationRequest.getMessage())
-                .uploaded_at(Date.valueOf(LocalDate.now()))
-                .expires_at(Date.valueOf(LocalDate.now().plusDays(expiryDate)))
+                .uploadedAt(Date.valueOf(LocalDate.now()))
+                .expiresAt(Date.valueOf(LocalDate.now().plusDays(expiryDate)))
                 .recipientsEmails(creationRequest.getRecipientsEmails())
                 .url(FolderUtils.generateRandomURL())
                 .build());
@@ -237,7 +237,7 @@ public class FolderService {
 
     }
 
-    @Transactional
+
     public void deleteFolder(Folder folder) {
 
         User user = folder.getFolderOwner();
@@ -246,7 +246,6 @@ public class FolderService {
         userRepository.save(user);
 
         fileService.deleteFilesFromUserStorage(folder);
-        logger.debug("Removing folder %d from user %d", folder.getId(), folder.getFolderOwner().getId());
         folderRepository.delete(folder);
     }
 
@@ -254,7 +253,7 @@ public class FolderService {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);
         Optional<List<Folder>> folderList = folderRepository.findAllByFolderOwner(UUID.fromString(userID));
 
-        if (folderList.isEmpty() || (folderList.get().size() == 0))
+        if (folderList.isEmpty() || (folderList.get().isEmpty()))
             return ResponseEntity.ok(List.of(Folder.builder().build()));
 
         if (user.getRole().equals(Role.ADMIN))

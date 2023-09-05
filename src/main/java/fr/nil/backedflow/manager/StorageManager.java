@@ -1,6 +1,7 @@
 package fr.nil.backedflow.manager;
 
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.exceptions.StorageCalculationException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 @Component
 public class StorageManager {
@@ -42,25 +44,30 @@ public class StorageManager {
     }
 
 
-    public long checkStorageSize() throws IOException {
-        return Files.walk(Paths.get(storagePath))
-                .filter(p -> p.toFile().isFile())
-                .mapToLong(p -> p.toFile().length())
-                .sum();
+    public long checkStorageSize() {
+        try (Stream<Path> files = Files.walk(Paths.get(storagePath))) {
+            return files.filter(p -> p.toFile().isFile()).mapToLong(p -> p.toFile().length()).sum();
+        } catch (IOException e) {
+            throw new StorageCalculationException(e.getMessage());
+        }
     }
 
-    public long checkUserStorageSize(User user) throws IOException {
+    public long checkUserStorageSize(User user) {
         Path userFolderPath = Paths.get(storagePath, "user_" + user.getId());
-        return Files.walk(userFolderPath)
-                .filter(p -> p.toFile().isFile())
-                .mapToLong(p -> p.toFile().length())
-                .sum();
-    }
-/*
-    public boolean canUserUpload(User user) throws IOException {
-        long size = checkUserStorageSize(user);
-        return user.get().getMaxUploadCapacity() > size;
+        try (Stream<Path> files = Files.walk(userFolderPath)) {
+            return files
+                    .filter(p -> p.toFile().isFile())
+                    .mapToLong(p -> p.toFile().length())
+                    .sum();
+        } catch (IOException e) {
+            throw new StorageCalculationException(e.getMessage());
+        }
     }
 
- */
+    public boolean canUserUpload(User user) {
+        long size = checkUserStorageSize(user);
+        return user.getPlan().getMaxUploadCapacity() > size;
+    }
+
+
 }

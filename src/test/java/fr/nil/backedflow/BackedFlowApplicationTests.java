@@ -116,14 +116,14 @@ class BackedFlowApplicationTests {
     }
 
     @Test
-    public void testGetFileExtension() {
+    void testGetFileExtension() {
         File testFile = new File("src/test/postman/testFile.txt");
 
         Assertions.assertEquals("txt", fileUtils.getFileExtension(testFile));
     }
 
     @Test
-    public void testEncryptAndDecryptFile() throws IOException {
+    void testEncryptAndDecryptFile() throws IOException {
         File input = File.createTempFile("testFile", ".txt");
         File encrypted = File.createTempFile("encryptedTestFile", ".txt");
         File decrypted = File.createTempFile("decryptedTestFile", ".txt");

@@ -2,7 +2,7 @@ package fr.nil.backedflow.services.files;
 
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
-import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.exceptions.FileDeletionException;
 import fr.nil.backedflow.repositories.FileEntityRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -50,7 +51,7 @@ public class FileService {
 
     // Save file to storage as well as adding the FileEntity to DB
 
-    public void saveFileToStorage(UUID id,File file, Folder folder) {
+    public void saveFileToStorage(File file, Folder folder) {
         fileEncryptorDecryptor.encryptFile(file,new File(fileUtils.getFilePathFromUserStorage(file,folder.getFolderOwner())));
     }
 
@@ -75,21 +76,23 @@ public class FileService {
         return fileRepository.findById(id);
     }
 
-    public File getFileById(UUID id,Folder folder) {
+    public File getFileById(UUID id) {
         Optional<FileEntity> fileEntity = getFileEntityById(id);
-
-        return new File(fileEntity.get().getFilePath());
+        return new File(fileEntity.orElseThrow().getFilePath());
     }
 
 
     public void deleteFilesFromUserStorage(Folder folder) {
-        User user = userRepository.findUserById(folder.getFolderOwner().getId()).orElseThrow();
 
         folder.getFileEntityList().forEach(fileEntity -> {
-            logger.debug("Deleting file %d", fileEntity.getFileName());
+            logger.debug(String.format("Deleting file %s", fileEntity.getFileName()));
             File file = new File(fileEntity.getFilePath());
-            file.delete();
-            logger.debug("File %d has been deleted", fileEntity.getFileName());
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                throw new FileDeletionException();
+            }
+            logger.debug(String.format("File %s has been deleted", fileEntity.getFileName()));
         });
 
         folder.getFileEntityList().removeAll(folder.getFileEntityList());
@@ -112,24 +115,23 @@ public class FileService {
     }
 
     public File getZippedFiles(List<FileEntity> fileEntities) throws IOException {
-            // Create a buffer for reading the files
-            byte[] buffer = new byte[1024];
+        // Create a buffer for reading the files
+        byte[] buffer = new byte[1024];
 
-            // Create a temp zip file
-            File tempZip = File.createTempFile("files", ".zip");
+        // Create a temp zip file
+        File tempZip = File.createTempFile("files", ".zip");
 
-            try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempZip))) {
-                // Compress the files
-                for (FileEntity fileEntity : fileEntities) {
-                    File originalFile = new File(fileEntity.getFilePath());
-                    File decryptedFile = File.createTempFile("decrypted", ".tmp");
+        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempZip))) {
+            // Compress the files
+            for (FileEntity fileEntity : fileEntities) {
+                File originalFile = new File(fileEntity.getFilePath());
+                File decryptedFile = File.createTempFile("decrypted", ".tmp");
 
-                    // Decrypt the file
-                    fileEncryptorDecryptor.decryptFile(originalFile, decryptedFile);
+                // Decrypt the file
+                fileEncryptorDecryptor.decryptFile(originalFile, decryptedFile);
 
-                    // Open the input file
-                    FileInputStream in = new FileInputStream(decryptedFile.getAbsoluteFile());
-
+                // Open the input file
+                try (FileInputStream in = new FileInputStream(decryptedFile.getAbsoluteFile())) {
                     // Add ZIP entry to output stream
                     out.putNextEntry(new ZipEntry(fileEntity.getFileName()));
 
@@ -141,18 +143,17 @@ public class FileService {
 
                     // Complete the entry
                     out.closeEntry();
-                    in.close();
-
-                    // Delete the decrypted temporary file
-                    decryptedFile.delete();
                 }
-            } catch (IOException e) {
-                logger.error("An error occurred during the file zipping (Error message : " + e.getMessage() + ").");
-                logger.debug(Arrays.toString(e.getStackTrace()));
-            }
 
-            // Complete the ZIP file
-            return tempZip;
+                // Delete the decrypted temporary file
+                Files.delete(decryptedFile.toPath());
+            }
+        } catch (IOException e) {
+            logger.error(String.format("An error occurred during the file zipping (Error message : %s).", e.getMessage()));
+            logger.debug(Arrays.toString(e.getStackTrace()));
         }
 
+        // Complete the ZIP file
+        return tempZip;
+    }
 }

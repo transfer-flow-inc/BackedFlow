@@ -8,6 +8,7 @@ import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.repositories.*;
 import fr.nil.backedflow.services.files.FileService;
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class UserService {
     private final EntityManager entityManager;
     private final UserRepository userRepository;
     private final FileService fileService;
+    private final JWTService jwtService;
 
     public User createUser(User user) {
         return userRepository.save(user);
@@ -47,6 +49,10 @@ public class UserService {
     }
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    public UUID getUserIDFromRequest(HttpServletRequest request) {
+        return UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()));
     }
 
 
@@ -97,8 +103,10 @@ public class UserService {
         User user = userRepository.findByMail(email).orElseThrow();
 
         if (folderRepository.findAllByFolderOwner(user.getId()).isPresent()) {
-            log.debug("Deleting all files in folders for the user %d", user.getId());
-            folderRepository.findAllByFolderOwner(user.getId()).get().forEach(folder -> fileService.deleteFilesFromUserStorage(folder));
+            if (log.isDebugEnabled())
+                log.debug(String.format("Deleting all files in folders for the user %s", user.getId()));
+
+            folderRepository.findAllByFolderOwner(user.getId()).get().forEach(fileService::deleteFilesFromUserStorage);
             folderRepository.deleteAllByFolderOwnerMail(email);
         }
 

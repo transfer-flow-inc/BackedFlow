@@ -1,16 +1,22 @@
 package fr.nil.backedflow.services.utils;
 
-import java.util.Random;
+import fr.nil.backedflow.exceptions.UtilityClassConstructorException;
+
+import java.security.SecureRandom;
 
 public class FolderUtils {
 
+    private static final SecureRandom random = new SecureRandom();
 
+
+    private FolderUtils() {
+        throw new UtilityClassConstructorException();
+    }
     public static String generateRandomURL() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder();
 
         // Create an instance of Random class
-        Random random = new Random();
 
         // Generate random index and append corresponding character to the string builder
         for (int i = 0; i < 8; i++) {

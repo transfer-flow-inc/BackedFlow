@@ -19,7 +19,7 @@ public class InvalidEmailExceptionHandler {
     @ResponseBody
     @ExceptionHandler(InvalidEmailException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String InvalidEmailException(InvalidEmailException e){
+    public String invalidEmailException(InvalidEmailException e) {
         return e.getMessage();
     }
 

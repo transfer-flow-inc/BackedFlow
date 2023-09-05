@@ -8,8 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,11 +33,11 @@ import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
 private final JWTService jwtService;
 private final UserDetailsService userDetailsService;
-private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFilter.class);
 
 
 
@@ -82,7 +81,7 @@ private static final Logger logger = LoggerFactory.getLogger(JWTAuthenticationFi
 
         } catch (Exception exception){
             exception.printStackTrace();
-            logger.error("Error logging in : {} ", exception.getMessage());
+            log.error("Error logging in : {} ", exception.getMessage());
             response.setHeader("error",exception.getMessage());
             response.setStatus(INTERNAL_SERVER_ERROR.value());
             Map<String,String > error = new HashMap<>();

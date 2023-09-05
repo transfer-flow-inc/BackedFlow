@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AccountCreationEvent {
 
-    public String userID;
+    private String userID;
 
     //temp variable
-    public String userName;
+    private String userName;
 
-    public String email;
-    public String validationToken;
+    private String email;
+    private String validationToken;
 }

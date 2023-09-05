@@ -36,9 +36,9 @@ public class Folder {
 
     private int folderViews;
 
-    private Date uploaded_at;
+    private Date uploadedAt;
 
-    private Date expires_at;
+    private Date expiresAt;
 
     @ElementCollection
     private List<String> recipientsEmails;
