@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,6 +52,7 @@ public class UserController {
 
   
     @DeleteMapping("/{email}")
+    @Transactional
     public void deleteUserByEmail(@PathVariable(value = "email", required = true) String email, Authentication authentication) {
         String userEmail = authentication.getName();
         logger.debug("User with the email : " + userEmail + ", has requested the account deletion of the account : " + email);

@@ -49,14 +49,14 @@ public class Folder {
 
     private String accessKey;
 
-    @OneToMany(fetch = FetchType.EAGER,cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "_folder_file_entity_list",
             joinColumns = @JoinColumn(name = "folder_id"),
             inverseJoinColumns = @JoinColumn(name = "file_entity_list_id")
     )
-    private List<FileEntity> fileEntityList = new ArrayList<>();;
+    private List<FileEntity> fileEntityList = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne()
     private User folderOwner;
 }

@@ -1,6 +1,7 @@
 package fr.nil.backedflow.entities.user;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
@@ -24,6 +25,7 @@ public class UserVerification {
     @Id
     public UUID id;
 
+    @JsonIgnore
     @OneToOne
     public User user;
 

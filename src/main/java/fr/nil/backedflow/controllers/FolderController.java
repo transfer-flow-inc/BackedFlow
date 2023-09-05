@@ -7,21 +7,22 @@ import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
-import fr.nil.backedflow.stats.MetricsEnum;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,6 +47,13 @@ public class FolderController {
     }
 
 
+    @DeleteMapping("/{id}")
+    public void deleteFolderFromID(@PathVariable(value = "id") String id, HttpServletRequest request) {
+
+        folderService.handleDeleteFolder(id, request);
+
+    }
+
     // todo Get folder by URL for front-end
     @GetMapping("/url/{folderURL}")
     public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
@@ -68,26 +76,35 @@ public class FolderController {
 
     // Define a method to download files
     @GetMapping("/download/{folderURL}")
-    public ResponseEntity<?> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException{
-        if(accessKey.isEmpty())
+    public ResponseEntity<StreamingResponseBody> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException {
+        if (accessKey.isEmpty())
             throw new InvalidTokenException();
-        if(!folderRepository.existsByUrl(folderURL))
+        if (!folderRepository.existsByUrl(folderURL))
             throw new FolderNotFoundException("get");
         Folder folder = folderRepository.getFolderByUrl(folderURL).get();
 
-        if(!accessKey.equals(folder.getAccessKey()))
+        if (!accessKey.equals(folder.getAccessKey()))
             throw new InvalidTokenException();
 
         File zipFile = fileService.getZippedFiles(folder.getFileEntityList());
 
+
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
-        meterRegistry.counter(MetricsEnum.FILE_TRANSFER_DOWNLOAD_COUNT.getMetricName()).increment();
+
+        InputStream fileInputStream = new FileInputStream(zipFile);
+        StreamingResponseBody stream = outputStream -> {
+            int bytesRead;
+            byte[] buffer = new byte[1024];
+            while ((bytesRead = fileInputStream.read(buffer, 0, 1024)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
+        };
+
         return ResponseEntity.ok()
                 .headers(headers)
-                .contentLength(zipFile.length())
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(new FileSystemResource(zipFile));
+                .body(stream);
     }
 
 

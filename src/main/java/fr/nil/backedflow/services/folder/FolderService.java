@@ -16,6 +16,7 @@ import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FolderUtils;
+import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,6 +51,7 @@ public class FolderService {
     private final FileService fileService;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
+    private final EntityManager entityManager;
     private Logger logger = LoggerFactory.getLogger(FolderService.class);
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -219,6 +222,33 @@ public class FolderService {
         return folderRepository.save(folder);
     }
 
+
+    public void handleDeleteFolder(String folderID, HttpServletRequest request) {
+        String userID = jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString());
+        Folder folder = folderRepository.getReferenceById(UUID.fromString(folderID));
+        User user = userRepository.findUserById(UUID.fromString(userID)).orElseThrow(UserNotFoundException::new);
+
+        if (user.getRole().equals(Role.ADMIN))
+            deleteFolder(folder);
+        if (!Objects.equals(user.getId().toString(), userID))
+            throw new UnauthorizedFolderAccessException();
+
+        deleteFolder(folder);
+
+    }
+
+    @Transactional
+    public void deleteFolder(Folder folder) {
+
+        User user = folder.getFolderOwner();
+
+        user.getUserFolders().remove(folder);
+        userRepository.save(user);
+
+        fileService.deleteFilesFromUserStorage(folder);
+        logger.debug("Removing folder %d from user %d", folder.getId(), folder.getFolderOwner().getId());
+        folderRepository.delete(folder);
+    }
 
     public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
         User user = userRepository.findUserById(UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()))).orElseThrow(UserNotFoundException::new);

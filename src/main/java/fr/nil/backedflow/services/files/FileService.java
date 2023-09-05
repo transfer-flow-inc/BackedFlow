@@ -2,6 +2,7 @@ package fr.nil.backedflow.services.files;
 
 import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.repositories.FileEntityRepository;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
@@ -67,25 +68,6 @@ public class FileService {
                 .build();
         meterRegistry.counter(MetricsEnum.FILE_TRANSFER_UPLOAD_COUNT.getMetricName()).increment();
 
-        //  meterRegistry.gauge(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(),file.length() != 0 ? file.length() / 1024.0 : 0);
-
-        /*
-        long fileSize = file.length();
-        Gauge.builder(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(), file, fileL -> fileSize / (1024.0 * 1024.0))
-                .tag("fileID", String.valueOf(fileEntity.getId()))
-               // .strongReference(true)
-                .register(meterRegistry);
-
-
-
-        Gauge.builder(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(), () -> {
-                    long fileSize = file.length(); // Get the current file size being uploaded
-                    return fileSize / (1024.0 * 1024.0); // Convert to megabytes if needed
-                })
-                .register(meterRegistry);
-
-        System.out.println(file.length());
-*/
         return fileRepository.save(fileEntity);
 
     }
@@ -97,6 +79,24 @@ public class FileService {
         Optional<FileEntity> fileEntity = getFileEntityById(id);
 
         return new File(fileEntity.get().getFilePath());
+    }
+
+
+    public void deleteFilesFromUserStorage(Folder folder) {
+        User user = userRepository.findUserById(folder.getFolderOwner().getId()).orElseThrow();
+
+        folder.getFileEntityList().forEach(fileEntity -> {
+            logger.debug("Deleting file %d", fileEntity.getFileName());
+            File file = new File(fileEntity.getFilePath());
+            file.delete();
+            logger.debug("File %d has been deleted", fileEntity.getFileName());
+        });
+
+        folder.getFileEntityList().removeAll(folder.getFileEntityList());
+        folderRepository.save(folder);
+
+        fileRepository.deleteAll(folder.getFileEntityList());
+
     }
 
     public boolean isFileExpired(FileEntity fileEntity)

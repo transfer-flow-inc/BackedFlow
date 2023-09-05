@@ -5,7 +5,9 @@ import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
-import fr.nil.backedflow.repositories.UserRepository;
+import fr.nil.backedflow.repositories.*;
+import fr.nil.backedflow.services.files.FileService;
+import jakarta.persistence.EntityManager;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,11 +24,16 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class UserService {
+    private final PlanRepository planRepository;
+    private final FileEntityRepository fileEntityRepository;
+    private final FolderRepository folderRepository;
+    private final UserVerificationRepository userVerificationRepository;
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationService authenticationService;
-
+    private final EntityManager entityManager;
     private final UserRepository userRepository;
+    private final FileService fileService;
 
     public User createUser(User user) {
         return userRepository.save(user);
@@ -49,9 +56,7 @@ public class UserService {
         if (!optionalUser.isPresent()) {
             throw new UsernameNotFoundException(mail);
         }
-
         User user = optionalUser.get();
-        log.warn("Yo wtf : " + oldPassword + " upass " + user.getPassword() + " doespassmatch ? " + passwordEncoder.matches(oldPassword, user.getPassword()));
 
         if (oldPassword != null && !passwordEncoder.matches(oldPassword, user.getPassword()))
             throw new PasswordMismatchException();
@@ -88,7 +93,20 @@ public class UserService {
 
 
     public void deleteUserByEmail(String email) {
+
+        User user = userRepository.findByMail(email).orElseThrow();
+
+        if (folderRepository.findAllByFolderOwner(user.getId()).isPresent()) {
+            log.debug("Deleting all files in folders for the user %d", user.getId());
+            folderRepository.findAllByFolderOwner(user.getId()).get().forEach(folder -> fileService.deleteFilesFromUserStorage(folder));
+            folderRepository.deleteAllByFolderOwnerMail(email);
+        }
+
+        entityManager.flush();
+        planRepository.delete(user.getPlan());
         userRepository.deleteByMail(email);
+        userVerificationRepository.deleteByUserMail(email);
+
     }
 
 

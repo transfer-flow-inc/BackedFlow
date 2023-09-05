@@ -19,6 +19,7 @@ public class VerificationController {
 
     private final UserVerificationService userVerificationService;
 
+
     @PostMapping()
     public ResponseEntity<AccountVerificationResponse> verifyUserAccount(@RequestBody(required = true) AccountVerificationRequest token) {
         if (token.getToken().isEmpty())
