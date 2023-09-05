@@ -32,7 +32,8 @@ public class UserController {
     @PatchMapping("/{email}")
     public ResponseEntity<AuthenticationResponse> updateUserById(@PathVariable(value = "email", required = true) String email, @RequestParam(value = "oldPassword", required = false) String oldPassword, @RequestBody UserUpdateRequest userUpdateRequest, Authentication authentication) throws PasswordMismatchException {
         String userEmail = authentication.getName();
-        logger.debug("An update request for the user " + email + " has been requested by " + userEmail);
+        if (logger.isDebugEnabled())
+            logger.debug(String.format("An update request for the user %s has been requested by %s", email, userEmail));
 
 
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
@@ -55,7 +56,8 @@ public class UserController {
     @Transactional
     public void deleteUserByEmail(@PathVariable(value = "email", required = true) String email, Authentication authentication) {
         String userEmail = authentication.getName();
-        logger.debug("User with the email : " + userEmail + ", has requested the account deletion of the account : " + email);
+        if (logger.isDebugEnabled())
+            logger.debug(String.format("User with the email : %s  has requested the account deletion of the account : ", email));
         if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
             userService.deleteUserByEmail(email);
 
@@ -63,7 +65,8 @@ public class UserController {
             throw new UnauthorizedUserAccessException("You are not authorized to delete this account");
 
         userService.deleteUserByEmail(email);
-        logger.debug("The account with the email : " + email + " has been deleted.");
+        if (logger.isDebugEnabled())
+            logger.debug(String.format("The account with the email : %s has been deleted.", email));
     }
 
 

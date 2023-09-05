@@ -21,7 +21,7 @@ public class InvalidSSOLoginRequestHandler {
     @ResponseBody
     @ExceptionHandler(InvalidSSOLoginRequest.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String InvalidSSOLoginException(InvalidSSOLoginRequest e){
+    public String invalidSSOLoginException(InvalidSSOLoginRequest e) {
         return e.getMessage();
     }
 

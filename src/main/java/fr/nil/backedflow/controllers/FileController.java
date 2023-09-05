@@ -1,5 +1,6 @@
 package fr.nil.backedflow.controllers;
 
+import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +18,9 @@ public class FileController {
     private final FolderService folderService;
 
     @PostMapping("/{folderID}")
-    public ResponseEntity<?> singleFileUpload(@RequestParam("file") MultipartFile file, @PathVariable String folderID, HttpServletRequest request) {
+    public ResponseEntity<FolderResponse> singleFileUpload(@RequestParam("file") MultipartFile file, @PathVariable String folderID, HttpServletRequest request) {
 
-        return ResponseEntity.ok(folderService.handleSingleFileUpload(file, UUID.fromString(folderID), request));
+        return folderService.handleSingleFileUpload(file, UUID.fromString(folderID), request);
     }
 
 }

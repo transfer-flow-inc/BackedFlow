@@ -70,20 +70,8 @@ public class AuthenticationService {
                 .build();
 
         user = userRepository.save(user);
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("authMethod", "spring_database");
-        extraClaims.put("firstName", user.getFirstName());
-        extraClaims.put("lastName", user.getLastName());
-        extraClaims.put("userEmail", user.getMail());
-        extraClaims.put("userRole", user.getRole());
-        extraClaims.put("userID", user.getId());
-        extraClaims.put("isAccountVerified", user.getIsAccountVerified());
-        extraClaims.put("plan", user.getPlan().getName());
-        extraClaims.put("avatar", user.getAvatar());
 
-
-
-        String jwtToken = jwtService.generateToken(extraClaims,user);
+        String jwtToken = jwtService.generateToken(generateExtraClaims(user, "spring_database"), user);
         meterRegistry.counter(MetricsEnum.USER_CREATION_COUNT.getMetricName()).increment();
         UserVerification userVerification = userVerificationService.generateVerificationToken(user);
 
@@ -91,7 +79,7 @@ public class AuthenticationService {
                         .userID(user.getId().toString())
                         .userName(user.getFirstName() + " " + user.getLastName())
                         .email(user.getMail())
-                        .validationToken(userVerification.verificationToken)
+                .validationToken(userVerification.getVerificationToken())
                 .build());
 
         return AuthenticationResponse.builder().token(jwtToken).build();
@@ -112,20 +100,9 @@ public class AuthenticationService {
         User user = userRepository.findByMail(request.getEmail())
                 .orElseThrow();
 
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("authMethod", "spring_database");
-        extraClaims.put("firstName", user.getFirstName());
-        extraClaims.put("lastName", user.getLastName());
-        extraClaims.put("userEmail", user.getMail());
-        extraClaims.put("userRole", user.getRole());
-        extraClaims.put("userID", user.getId());
-        extraClaims.put("isAccountVerified", user.getIsAccountVerified());
-        extraClaims.put("plan", user.getPlan().getName());
-        extraClaims.put("avatar", user.getAvatar());
-
 
         meterRegistry.counter(MetricsEnum.USER_LOGIN_COUNT.getMetricName()).increment();
-        String jwtToken = jwtService.generateToken(extraClaims,user);
+        String jwtToken = jwtService.generateToken(generateExtraClaims(user, "spring_database"), user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
 
@@ -164,8 +141,15 @@ public class AuthenticationService {
         if (!userRepository.existsByMail(request.getEmail()))
             user = userRepository.save(user);
 
+        meterRegistry.counter(MetricsEnum.USER_SSO_LOGIN_COUNT.getMetricName()).increment();
+        String jwtToken = jwtService.generateToken(generateExtraClaims(user, "google_sso"), user);
+        return AuthenticationResponse.builder().token(jwtToken).build();
+    }
+
+
+        private Map<String, Object> generateExtraClaims(User user, String authMethod) {
         Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("authMethod", "google_sso");
+            extraClaims.put("authMethod", authMethod);
         extraClaims.put("firstName", user.getFirstName());
         extraClaims.put("lastName", user.getLastName());
         extraClaims.put("userEmail", user.getMail());
@@ -175,9 +159,7 @@ public class AuthenticationService {
         extraClaims.put("plan", user.getPlan().getName());
         extraClaims.put("avatar", user.getAvatar());
 
-        meterRegistry.counter(MetricsEnum.USER_SSO_LOGIN_COUNT.getMetricName()).increment();
-        String jwtToken = jwtService.generateToken(extraClaims,user);
-        return AuthenticationResponse.builder().token(jwtToken).build();
+            return extraClaims;
     }
 
 }

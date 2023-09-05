@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
 import javax.crypto.Cipher;
-
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,39 +24,41 @@ public class FileEncryptorDecryptor {
     private static final String ENCRYPTION_ALGORITHM = "AES";
 
     public void encryptFile(File inputFile, File encryptedFile) {
-            try {
-                byte[] fileContent = StreamUtils.copyToByteArray(new FileInputStream(inputFile));
+        try (
+                FileInputStream fileInputStream = new FileInputStream(inputFile);
+                FileOutputStream outputStream = new FileOutputStream(encryptedFile)
+        ) {
+            byte[] fileContent = StreamUtils.copyToByteArray(fileInputStream);
 
-                SecretKeySpec secretKeySpec = new SecretKeySpec(aesSecretKey.getBytes(), ENCRYPTION_ALGORITHM);
-                Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
-                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-                byte[] encryptedContent = cipher.doFinal(fileContent);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(aesSecretKey.getBytes(), ENCRYPTION_ALGORITHM);
+            Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            byte[] encryptedContent = cipher.doFinal(fileContent);
 
-                FileOutputStream outputStream = new FileOutputStream(encryptedFile);
-                outputStream.write(encryptedContent);
-                outputStream.close();
-            } catch (Exception e) {
-                logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
-                logger.debug(Arrays.toString(e.getStackTrace()));
-            }
+            outputStream.write(encryptedContent);
+        } catch (Exception e) {
+            logger.error(String.format("An error occurred during the file upload, Error message : %s", e.getMessage()));
+            logger.debug(Arrays.toString(e.getStackTrace()));
+        }
     }
 
     public void decryptFile(File encryptedFile, File decryptedFile) {
-        try {
-            byte[] encryptedContent = StreamUtils.copyToByteArray(new FileInputStream(encryptedFile));
+        try (
+                FileInputStream fileInputStream = new FileInputStream(encryptedFile);
+                FileOutputStream outputStream = new FileOutputStream(decryptedFile)
+        ) {
+            byte[] encryptedContent = StreamUtils.copyToByteArray(fileInputStream);
 
             SecretKeySpec secretKeySpec = new SecretKeySpec(aesSecretKey.getBytes(), ENCRYPTION_ALGORITHM);
             Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             byte[] decryptedContent = cipher.doFinal(encryptedContent);
             System.out.println(Arrays.toString(decryptedContent));
-            FileOutputStream outputStream = new FileOutputStream(decryptedFile);
-            System.out.println(outputStream);
             outputStream.write(decryptedContent);
-            outputStream.close();
+            System.out.println(outputStream);
         } catch (Exception e) {
             // Handle exceptions appropriately
-            logger.error("An error occurred during the file upload (Error message : " + e.getMessage() + ").");
+            logger.error(String.format("An error occurred during the file upload, Error message : %s", e.getMessage()));
             logger.debug(Arrays.toString(e.getStackTrace()));
         }
     }

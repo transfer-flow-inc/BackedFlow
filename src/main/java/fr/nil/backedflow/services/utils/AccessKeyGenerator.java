@@ -1,13 +1,19 @@
 package fr.nil.backedflow.services.utils;
 
-import java.util.Random;
+import fr.nil.backedflow.exceptions.UtilityClassConstructorException;
+
+import java.security.SecureRandom;
 
 public class AccessKeyGenerator {
 
+    private static final SecureRandom random = new SecureRandom();
+
     public static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-$*";
 
+    private AccessKeyGenerator() {
+        throw new UtilityClassConstructorException();
+    }
     public static String generateAccessKey(int length) {
-        Random random = new Random();
         StringBuilder stringBuilder = new StringBuilder(length);
 
         for (int i = 0; i < length; i++) {
@@ -17,21 +23,21 @@ public class AccessKeyGenerator {
     }
 
     public static String generateAccessKey() {
-        Random random = new Random();
-        StringBuilder stringBuilder = new StringBuilder(64);
+        StringBuilder stringBuilder = new StringBuilder(128);
 
-        for (int i = 0; i < 64; i++) {
+        for (int i = 0; i < 128; i++) {
             stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
         }
         return stringBuilder.toString();
     }
-    public static String generateVerificationToken() {
-        Random random = new Random();
-        StringBuilder stringBuilder = new StringBuilder(64);
 
+    public static String generateVerificationToken() {
+
+        StringBuilder stringBuilder = new StringBuilder(64);
         for (int i = 0; i < 64; i++) {
             stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
         }
+
         return stringBuilder.toString();
     }
 }

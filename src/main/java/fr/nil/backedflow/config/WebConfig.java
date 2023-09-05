@@ -25,7 +25,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins("https://api.transfer-flow.studio")
                 .exposedHeaders("Access-Control-Allow-Origin")
                 .allowCredentials(true)
-                .maxAge(3600*5)
+                .maxAge(((long) 3600 * 5))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD");
 
     }

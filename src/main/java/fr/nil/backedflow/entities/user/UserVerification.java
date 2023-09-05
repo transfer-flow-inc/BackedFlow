@@ -27,9 +27,9 @@ public class UserVerification {
 
     @JsonIgnore
     @OneToOne
-    public User user;
+    private User user;
 
-    public String verificationToken;
+    private String verificationToken;
 
 
 }

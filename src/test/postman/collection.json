@@ -4,12 +4,185 @@
 		"name": "TransferFlow API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "24752067",
-		"_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&source=collection_link&creator=24752067"
+		"_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&creator=24752067&source=collection_link"
 	},
 	"item": [
 		{
 			"name": "User",
 			"item": [
+				{
+					"name": "Delete User",
+					"item": [
+						{
+							"name": "Register a temp User into the Database",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"    pm.test(\"Response status code is 200\", function () {",
+											"        pm.expect(pm.response.code).to.equal(200);",
+											"    });",
+											"",
+											"    pm.test(\"Response contains a token\", function () {",
+											"        pm.expect(pm.response.json()).to.have.property('token').that.is.a('string');",
+											"    });",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"var email = \"testfrl\" + Math.floor(Math.random() * 1500) + \"@example.com\";",
+											"var password = \"password123\";",
+											"var firstName = \"John\";",
+											"var lastName = \"Doe\";",
+											"",
+											"    pm.environment.set(\"tempEmail\", email);",
+											"    pm.environment.set(\"tempPassword\", password);",
+											"    pm.environment.set(\"firstName\", firstName);",
+											"    pm.environment.set(\"lastName\", lastName);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"firstName\": \"Nilq\",\n    \"lastName\": \"MALHOMMEq\",\n    \"email\": \"{{tempEmail}}\",\n    \"password\": \"{{tempPassword}}\"\n\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v1/auth/register",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"register"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Request  temp JWT token from the backend Copy",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response contains a token\", function () {",
+											"    pm.expect(pm.response.json()).to.have.property('token');",
+											"        pm.environment.set(\"tempAuthToken\", pm.response.json().token);",
+											"",
+											"});",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"{{tempEmail}}\",\n    \"password\": \"{{tempPassword}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{baseURL}}/api/v1/auth/authenticate",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"auth",
+										"authenticate"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete a user",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Response status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{tempAuthToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseURL}}/api/v1/user/{{tempEmail}}",
+									"host": [
+										"{{baseURL}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"user",
+										"{{tempEmail}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "Register a new User into the Database",
 					"event": [
@@ -287,6 +460,68 @@
 									"",
 									"    pm.environment.set(\"userID\", responseData.folderOwner.id);",
 									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\n    \"folderName\": \"Tefdfdsfsdfsdfst\",\n    \"recipientsEmails\": [\"malhomme.nil@gmail.com\",\"thibaultbruhatpro@gmail.com\"],\n    \"message\":\"Guess who's the boss now oi ?\",\n    \"folderSize\": 46523,\n    \"fileCount\": 69\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/api/v1/folder/",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Generate new temp folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is a JSON object\", function () {",
+									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+									"});",
+									"",
+									"pm.test(\"Response contains a non-empty ID\", function () {",
+									"    pm.expect(pm.response.json().id).to.not.be.empty;",
+									"    pm.environment.set(\"tempFolderID\", pm.response.json().id);",
+									"});",
 									"",
 									""
 								],
@@ -353,6 +588,7 @@
 									"pm.test(\"Response contains a folderOwner\", function () {",
 									"    pm.expect(pm.response.json()).to.have.property('folderOwner');",
 									"});",
+									"",
 									"pm.test(\"Response contains a url\", function(){",
 									"    pm.expect(pm.response.json()).to.have.property('url')",
 									"    pm.environment.set(\"folderURL\", pm.response.json().url)",
@@ -507,45 +743,48 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"const response = pm.response.json();",
 									"",
+									"// Check if the response code is 200",
 									"pm.test(\"Response status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"",
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
+									"// Check if the response contains a folder object",
+									"pm.test(\"Response contains a folder object\", function () {",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.have.property('folder');",
 									"});",
 									"",
-									"pm.test(\"Response contains folder and accessKey objects\", function () {",
-									"    var jsonData = pm.response.json().body;",
 									"",
-									"    pm.expect(jsonData).to.have.property('folder');",
-									"    pm.expect(jsonData).to.have.property('accessKey');",
-									"});",
-									"",
-									"pm.test(\"The folder object has a non-empty fileEntityList\", function () {",
-									"    var jsonData = pm.response.json().body;",
-									"    var fileEntityList = jsonData.folder.fileEntityList;",
-									"",
+									"// Check if the folder object contains a non-empty fileEntityList array",
+									"pm.test(\"Folder object contains a non-empty fileEntityList array\", function () {",
+									"    var fileEntityList = pm.response.json().folder.fileEntityList;",
 									"    pm.expect(fileEntityList).to.be.an('array').that.is.not.empty;",
 									"});",
 									"",
-									"pm.test(\"The folder object has an id\", function () {",
-									"    var jsonData = pm.response.json().body;",
-									"    var folderId = jsonData.folder.id;",
+									"// Check if the folder object has a non-null id and save the folderOwner id",
+									"pm.test(\"Folder object has a non-null id and save folderOwner id\", function () {",
+									"    var folderId = pm.response.json().folder.id;",
+									"    pm.expect(folderId).to.not.be.null;",
+									"    pm.environment.set(\"folderId\", folderId);",
 									"",
-									"    pm.expect(folderId).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0);",
+									"    var folderOwnerId = pm.response.json().folder.folderOwner.id;",
+									"    pm.expect(folderOwnerId).to.not.be.null;",
+									"    pm.environment.set(\"folderOwnerId\", folderOwnerId);",
 									"});",
 									"",
-									"pm.test(\"Adding object value to environment for further testing\", function () {",
-									"    pm.environment.set(\"folderID\", response.body.folder.id);",
-									"    pm.environment.set(\"folderURL\", response.body.folder.url);",
-									"    pm.environment.set(\"accessKey\", response.body.accessKey);",
+									"// Check if the response contains an url",
+									"pm.test(\"Response contains an url\", function () {",
+									"    var url = pm.response.json().folder.url;",
+									"    pm.expect(url).to.not.be.null;",
 									"});",
 									"",
-									""
+									"// Check if the response contains an accessKey",
+									"pm.test(\"Response contains an accessKey\", function () {",
+									"    var accessKey = pm.response.json().accessKey;",
+									"    pm.expect(accessKey).to.not.be.null;",
+									"    pm.environment.set(\"accessKey\", accessKey);",
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -571,18 +810,6 @@
 									"key": "file",
 									"type": "file",
 									"src": "./src/test/postman/testFile.txt"
-								},
-								{
-									"key": "files",
-									"type": "file",
-									"src": [],
-									"disabled": true
-								},
-								{
-									"key": "files",
-									"type": "file",
-									"src": [],
-									"disabled": true
 								}
 							]
 						},
@@ -647,6 +874,49 @@
 									"key": "accessKey",
 									"value": "{{accessKey}}"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Folder",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{authToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}/api/v1/folder/{{tempFolderID}}",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"folder",
+								"{{tempFolderID}}"
 							]
 						}
 					},
