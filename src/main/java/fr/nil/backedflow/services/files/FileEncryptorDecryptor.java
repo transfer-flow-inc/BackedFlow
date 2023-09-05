@@ -21,7 +21,7 @@ public class FileEncryptorDecryptor {
     @Value("${TRANSFERFLOW_FILE_ENCRYPTION_KEY}")
     private String aesSecretKey;
 
-    private static final String ENCRYPTION_ALGORITHM = "AES/GCM/NoPadding";
+    private static final String ENCRYPTION_ALGORITHM = "AES";
 
     public void encryptFile(File inputFile, File encryptedFile) {
         try (
@@ -53,8 +53,9 @@ public class FileEncryptorDecryptor {
             Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             byte[] decryptedContent = cipher.doFinal(encryptedContent);
-
+            System.out.println(Arrays.toString(decryptedContent));
             outputStream.write(decryptedContent);
+            System.out.println(outputStream);
         } catch (Exception e) {
             // Handle exceptions appropriately
             logger.error(String.format("An error occurred during the file upload, Error message : %s", e.getMessage()));
