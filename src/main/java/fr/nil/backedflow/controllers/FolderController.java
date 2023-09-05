@@ -3,7 +3,6 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.exceptions.InvalidTokenException;
-import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.files.FileService;
@@ -12,6 +11,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
@@ -22,8 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +31,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/folder")
+@Slf4j
 public class FolderController {
 
     private final FolderRepository folderRepository;
@@ -69,7 +70,7 @@ public class FolderController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<FolderResponse> multipleFileUpload(@RequestParam("file") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL, HttpServletRequest request) {
+    public ResponseEntity<Folder> multipleFileUpload(@RequestParam("file") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL, HttpServletRequest request) {
 
         return folderService.handleMultipleFileUpload(files, folderURL, request);
     }
@@ -95,22 +96,27 @@ public class FolderController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
-        StreamingResponseBody stream;
-        try (InputStream fileInputStream = new FileInputStream(zipFile)) {
-            stream = outputStream -> {
+        InputStream fileInputStream = Files.newInputStream(zipFile.toPath());
+        try {
+            StreamingResponseBody stream = outputStream -> {
                 int bytesRead;
                 byte[] buffer = new byte[1024];
                 while ((bytesRead = fileInputStream.read(buffer, 0, 1024)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                 }
+                fileInputStream.close();
             };
 
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(stream);
-        }
 
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+        }
+        return ResponseEntity.internalServerError().build();
     }
 
 

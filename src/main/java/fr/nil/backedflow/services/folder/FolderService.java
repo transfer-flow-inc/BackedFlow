@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,7 +63,7 @@ public class FolderService {
 
 
     @SneakyThrows
-    public ResponseEntity<FolderResponse> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
+    public ResponseEntity<Folder> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
     {
         if(folderURL == null)
             folderURL = FolderUtils.generateRandomURL();
@@ -102,7 +101,7 @@ public class FolderService {
 
     }
         addFilesToFolder(folder, fileEntities);
-        return ResponseEntity.ok(FolderResponse.builder().folder(folder).accessKey(folder.getAccessKey()).build());
+        return ResponseEntity.ok(folder);
 }
 
     @SneakyThrows
@@ -112,7 +111,7 @@ public class FolderService {
         if (folderRepository.findById(folderUUID).isEmpty())
             throw new FolderNotFoundException();
 
-        Folder targetFolder = folderRepository.findById(folderUUID).get();
+        Folder targetFolder = folderRepository.findById(folderUUID).orElseThrow();
 
         if (file.isEmpty())
             throw new FileEmptyUploadException();
