@@ -58,9 +58,6 @@ jobs:
           TRANSFERFLOW_FILE_ENCRYPTION_KEY: f0e1d2c3b4a5968778695a4b3c2d1e0f
           TRANSFERFLOW_FILE_EXPIRY_DATE: 7
           TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY: ./.transferflow
-        run: mvn -B -X verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-          -Dsonar.projectKey=transfer-flow-inc_BackedFlow_AYpf9fILb4ZyWMENNQTJ \
-          -Dsonar.projectName='BackedFlow' \
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml
+        run: mvn -B -X verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=transfer-flow-inc_BackedFlow_AYpf9fILb4ZyWMENNQT -Dsonar.projectName='BackedFlow' -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml
 
 
