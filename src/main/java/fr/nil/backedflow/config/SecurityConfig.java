@@ -69,7 +69,7 @@ private final AuthenticationProvider authenticationProvider;
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://192.168.140.15:9006", "http://192.168.140.15:4200", "http://192.168.140.15", "http://192.168.1.18:4200", "http://api.transfer-flow.studio", "https://api.transfer-flow.studio", "http://transfer-flow.studio", "https://transfer-flow.studio")); // allow all origins
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "HEAD")); // allow all HTTP methods
+        configuration.setAllowedMethods(Arrays.asList("GET", "PATCH", "OPTIONS", "POST", "PUT", "DELETE", "HEAD")); // allow all HTTP methods
         configuration.setAllowedHeaders(Arrays.asList("*")); // allow all headers
         configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age")); // expose additional headers
         configuration.setAllowCredentials(true); // allow cookies
