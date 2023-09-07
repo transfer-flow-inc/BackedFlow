@@ -19,8 +19,8 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: '18'
-          distribution: adopt
+          java-version: '19'
+          distribution: temurin
 
       - name: Set up Maven
         uses: s4u/maven-settings-action@v2.4.0
