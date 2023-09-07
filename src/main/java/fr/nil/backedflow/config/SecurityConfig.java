@@ -1,7 +1,6 @@
 package fr.nil.backedflow.config;
 
 
-import fr.nil.backedflow.entities.user.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -79,11 +78,16 @@ private final AuthenticationProvider authenticationProvider;
                                         mvc.pattern("/api/v1/folder/url/**"), mvc.pattern("/api/v1/verify/**")).permitAll()
                                 .requestMatchers(mvc.pattern("/actuator/**")).permitAll()
                                 .requestMatchers(mvc.pattern("/v3/api-docs/**"), mvc.pattern("/swagger-ui/**")).permitAll()
-                                .requestMatchers(mvc.pattern("/api/v1/admin/**")).hasAuthority(Role.ADMIN.name())
+                                .requestMatchers(mvc.pattern("/api/v1/admin/**")).hasAuthority("ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer
+                                .authenticationEntryPoint((request, response, authException) -> response.sendError(401, "Unauthorized"))
+                                .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(403, "Forbidden"))
+                )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
