@@ -6,19 +6,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.Arrays;
 
 @Configuration
-@EnableWebSecurity
+@EnableMethodSecurity(securedEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
     /**
@@ -30,45 +32,20 @@ private final JWTAuthenticationFilter jwtAuthFilter;
      */
 private final AuthenticationProvider authenticationProvider;
 
-    /**
-     * Configures the security filter chain for HTTP requests.
-     *
-     * @param httpSecurity the HTTP security object to configure
-     * @return the security filter chain
-     * @throws Exception if an error occurs while configuring the security filter chain
-     */
-
-    /*
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, CorsConfigurationSource corsConfigurationSource) throws Exception {
-        httpSecurity
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/verify/**", "/v3/api-docs/**", "/swagger-ui/**")
-                        .permitAll()
-                        .anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return httpSecurity.build();
-    }
 
 
-     */
     @Value("${transferflow.security.actuator.password:password123!}")
     private String actuatorPassword;
-
-
     /**
      * Configures the CORS configuration for HTTP requests.
      *
      * @return the CORS configuration source
      */
-    // ! Need to be configured for production this is highly unsecure practice
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://192.168.140.15:9006", "http://192.168.140.15:4200", "http://192.168.140.15", "http://192.168.1.18:4200", "http://api.transfer-flow.studio", "https://api.transfer-flow.studio", "http://transfer-flow.studio", "https://transfer-flow.studio")); // allow all origins
+        configuration.setAllowedOrigins(Arrays.asList("http://api.transfer-flow.studio", "https://api.transfer-flow.studio", "http://transfer-flow.studio", "https://transfer-flow.studio")); // allow all origins
         configuration.setAllowedMethods(Arrays.asList("GET", "PATCH", "OPTIONS", "POST", "PUT", "DELETE", "HEAD")); // allow all HTTP methods
         configuration.setAllowedHeaders(Arrays.asList("*")); // allow all headers
         configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age")); // expose additional headers
@@ -84,47 +61,43 @@ private final AuthenticationProvider authenticationProvider;
     /**
      * Configures the security filter chain for HTTP requests.
      *
-     * @param httpSecurity the HTTP security object to configure
+     * @param http the HTTP security object to configure
+     * @param mvc the MVC request matcher builder
      * @return the security filter chain
      * @throws Exception if an error occurs while configuring the security filter chain
      **/
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, MvcRequestMatcher.Builder mvc) throws Exception {
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .addFilterAfter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeHttpRequests(authorizedRequests ->
+                        authorizedRequests
+                                .requestMatchers(mvc.pattern("/api/v1/auth/**"), mvc.pattern("/api/v1/folder/download/**"),
+                                        mvc.pattern("/api/v1/folder/url/**"), mvc.pattern("/api/v1/verify/**")).permitAll()
+                                .requestMatchers(mvc.pattern("/actuator/**")).permitAll()
+                                .requestMatchers(mvc.pattern("/v3/api-docs/**"), mvc.pattern("/swagger-ui/**")).permitAll()
+                                .requestMatchers(mvc.pattern("/api/v1/admin/**")).hasAuthority("ADMIN")
+                                .anyRequest().authenticated()
+                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(authenticationProvider)
+                .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
+                        httpSecurityExceptionHandlingConfigurer
+                                .authenticationEntryPoint((request, response, authException) -> response.sendError(401, "Unauthorized"))
+                                .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(403, "Forbidden"))
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
-                .cors()
-                .and()
-                .csrf()
-                .disable()
-                .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/**", "/api/v1/folder/download/**", "/api/v1/folder/url/**", "/api/v1/verify/**")
-                .permitAll()
-                .requestMatchers("/actuator/**")
-                .permitAll()
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-
-        ;
-
-        return httpSecurity.build();
+    MvcRequestMatcher.Builder mvc(HandlerMappingIntrospector introspector) {
+        return new MvcRequestMatcher.Builder(introspector);
     }
-/*
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication()
-                .withUser("prometheus")
-                .password(new BCryptPasswordEncoder().encode(actuatorPassword))
-                .authorities("ROLE_ADMIN");
-    }
-
-
- */
 }
+
+
