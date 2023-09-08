@@ -4,6 +4,7 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.services.AdminService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -28,9 +30,11 @@ public class AdminController {
         return ResponseEntity.ok(users);
     }
 
+  
     @GetMapping("/user/{id}")
     public ResponseEntity<User> getUserByID(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(adminService.getUserByID(id));
     }
+
 
 }
