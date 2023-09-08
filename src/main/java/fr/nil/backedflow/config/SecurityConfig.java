@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,12 +28,12 @@ public class SecurityConfig {
     /**
      * The JWT authentication filter.
      */
-private final JWTAuthenticationFilter jwtAuthFilter;
+    private final JWTAuthenticationFilter jwtAuthFilter;
     /**
      * The authentication provider.
      */
-private final AuthenticationProvider authenticationProvider;
-
+    private final AuthenticationProvider authenticationProvider;
+    private final Environment env;
 
 
     @Value("${transferflow.security.actuator.password:password123!}")
@@ -62,7 +64,8 @@ private final AuthenticationProvider authenticationProvider;
      * Configures the security filter chain for HTTP requests.
      *
      * @param http the HTTP security object to configure
-     * @param mvc the MVC request matcher builder
+
+     * @param mvc  the MVC request matcher builder
      * @return the security filter chain
      * @throws Exception if an error occurs while configuring the security filter chain
      **/
@@ -72,15 +75,21 @@ private final AuthenticationProvider authenticationProvider;
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .addFilterAfter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(authorizedRequests ->
-                        authorizedRequests
-                                .requestMatchers(mvc.pattern("/api/v1/auth/**"), mvc.pattern("/api/v1/folder/download/**"),
-                                        mvc.pattern("/api/v1/folder/url/**"), mvc.pattern("/api/v1/verify/**")).permitAll()
-                                .requestMatchers(mvc.pattern("/actuator/**")).permitAll()
-                                .requestMatchers(mvc.pattern("/v3/api-docs/**"), mvc.pattern("/swagger-ui/**")).permitAll()
-                                .requestMatchers(mvc.pattern("/api/v1/admin/**")).hasAuthority("ADMIN")
-                                .anyRequest().authenticated()
-                )
+
+                .authorizeHttpRequests(authorizedRequests -> {
+                    authorizedRequests
+                            .requestMatchers(mvc.pattern("/api/v1/auth/**"), mvc.pattern("/api/v1/folder/download/**"), mvc.pattern("/api/v1/folder/url/**"), mvc.pattern("/api/v1/verify/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/actuator/**")).permitAll()
+                            .requestMatchers(mvc.pattern("/v3/api-docs/**"), mvc.pattern("/swagger-ui/**")).permitAll();
+
+                    if (env.acceptsProfiles(Profiles.of("apitesting"))) {
+                        authorizedRequests.requestMatchers(mvc.pattern("/api/v1/admin/**")).permitAll();
+                    } else {
+                        authorizedRequests.requestMatchers(mvc.pattern("/api/v1/admin/**")).hasAuthority("ADMIN");
+                    }
+
+                    authorizedRequests.anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
@@ -89,7 +98,6 @@ private final AuthenticationProvider authenticationProvider;
                                 .accessDeniedHandler((request, response, accessDeniedException) -> response.sendError(403, "Forbidden"))
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 
@@ -99,5 +107,4 @@ private final AuthenticationProvider authenticationProvider;
         return new MvcRequestMatcher.Builder(introspector);
     }
 }
-
 
