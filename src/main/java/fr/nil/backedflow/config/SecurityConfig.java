@@ -38,7 +38,6 @@ public class SecurityConfig {
 
     @Value("${transferflow.security.actuator.password:password123!}")
     private String actuatorPassword;
-
     /**
      * Configures the CORS configuration for HTTP requests.
      *
@@ -65,6 +64,7 @@ public class SecurityConfig {
      * Configures the security filter chain for HTTP requests.
      *
      * @param http the HTTP security object to configure
+
      * @param mvc  the MVC request matcher builder
      * @return the security filter chain
      * @throws Exception if an error occurs while configuring the security filter chain
@@ -75,6 +75,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .addFilterAfter(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
                 .authorizeHttpRequests(authorizedRequests -> {
                     authorizedRequests
                             .requestMatchers(mvc.pattern("/api/v1/auth/**"), mvc.pattern("/api/v1/folder/download/**"), mvc.pattern("/api/v1/folder/url/**"), mvc.pattern("/api/v1/verify/**")).permitAll()
@@ -89,7 +90,6 @@ public class SecurityConfig {
 
                     authorizedRequests.anyRequest().authenticated();
                 })
-
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .exceptionHandling(httpSecurityExceptionHandlingConfigurer ->
@@ -107,5 +107,4 @@ public class SecurityConfig {
         return new MvcRequestMatcher.Builder(introspector);
     }
 }
-
 
