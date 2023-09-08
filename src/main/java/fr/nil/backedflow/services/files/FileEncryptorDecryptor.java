@@ -53,9 +53,7 @@ public class FileEncryptorDecryptor {
             Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             byte[] decryptedContent = cipher.doFinal(encryptedContent);
-            System.out.println(Arrays.toString(decryptedContent));
             outputStream.write(decryptedContent);
-            System.out.println(outputStream);
         } catch (Exception e) {
             // Handle exceptions appropriately
             logger.error(String.format("An error occurred during the file upload, Error message : %s", e.getMessage()));
