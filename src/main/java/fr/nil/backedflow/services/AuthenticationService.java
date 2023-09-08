@@ -140,6 +140,8 @@ public class AuthenticationService {
 
         if (!userRepository.existsByMail(request.getEmail()))
             user = userRepository.save(user);
+        else
+            userRepository.updateUser(user.getFirstName(), user.getLastName(), user.getMail(), user.getPassword(), userRepository.findByMail(user.getMail()).get().getId(), user.getAvatar());
 
         meterRegistry.counter(MetricsEnum.USER_SSO_LOGIN_COUNT.getMetricName()).increment();
         String jwtToken = jwtService.generateToken(generateExtraClaims(user, "google_sso"), user);
@@ -154,7 +156,7 @@ public class AuthenticationService {
         extraClaims.put("lastName", user.getLastName());
         extraClaims.put("userEmail", user.getMail());
         extraClaims.put("userRole", user.getRole());
-        extraClaims.put("userID", userRepository.save(user).getId());
+            extraClaims.put("userID", userRepository.existsByMail(user.getMail()) ? userRepository.findByMail(user.getMail()).orElseThrow().getId() : userRepository.save(user).getId());
         extraClaims.put("isAccountVerified", user.getIsAccountVerified());
         extraClaims.put("plan", user.getPlan().getName());
         extraClaims.put("avatar", user.getAvatar());
