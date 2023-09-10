@@ -7,8 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,9 +36,9 @@ public class Folder {
 
     private int folderViews;
 
-    private Date uploadedAt;
+    private LocalDateTime uploadedAt;
 
-    private Date expiresAt;
+    private LocalDateTime expiresAt;
 
     @ElementCollection
     private List<String> recipientsEmails;

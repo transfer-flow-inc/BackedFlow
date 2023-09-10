@@ -4,6 +4,7 @@ import fr.nil.backedflow.entities.user.User;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,5 +53,15 @@ public class FileUtils {
         archiveExtensions.add("7z");
 
         return archiveExtensions.contains(fileExtension.toLowerCase());
+    }
+
+    public static long convertFileSizeBytesToGB(long bytes) {
+        return Math.round(bytes / Math.pow(1024, 3));
+    }
+
+    public static Float convertSizeBytesToGB(long bytes) {
+        double gb = bytes / Math.pow(1024, 3);
+        DecimalFormat df = new DecimalFormat("#.000"); // Set your desired format here.
+        return Float.parseFloat(df.format(gb));
     }
 }

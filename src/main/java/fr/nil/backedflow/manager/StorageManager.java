@@ -1,7 +1,10 @@
 package fr.nil.backedflow.manager;
 
+import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.StorageCalculationException;
+import fr.nil.backedflow.services.utils.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +16,10 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 public class StorageManager {
 
-    @Value("${TRANSFERFLOW_FILE_VAULT_MAIN_DIRECTORY}")
+    @Value("${transferflow.storage.vault.directory}")
     private String storagePath;
 
     public String getFileStoragePath()
@@ -38,11 +42,17 @@ public class StorageManager {
 
     }
 
+    public String getUserFileStoragePathToFolder(User user, Folder folder) {
+        File userPath = new File(getFileStoragePath() + File.separator + "user_" + user.getId() + File.separator + folder.getId());
+        userPath.mkdirs();
+        return userPath.getAbsolutePath(); // Create the user directory path
+
+    }
+
     public String getFilePathFromUserStorage(File file, User user)
     {
         return getUserFileStoragePath(user) + File.separator + file.getName();
     }
-
 
     public long checkStorageSize() {
         try (Stream<Path> files = Files.walk(Paths.get(storagePath))) {
@@ -53,6 +63,11 @@ public class StorageManager {
     }
 
     public long checkUserStorageSize(User user) {
+
+        if (getUserFileStoragePath(user) == null) {
+            return 0;
+        }
+
         Path userFolderPath = Paths.get(storagePath, "user_" + user.getId());
         try (Stream<Path> files = Files.walk(userFolderPath)) {
             return files
@@ -64,9 +79,18 @@ public class StorageManager {
         }
     }
 
-    public boolean canUserUpload(User user) {
+    public Float getFormattedUserStorageSize(User user) {
         long size = checkUserStorageSize(user);
-        return user.getPlan().getMaxUploadCapacity() > size;
+
+        return FileUtils.convertSizeBytesToGB(size);
+    }
+
+
+    public boolean hasEnoughStorageSize(User user) {
+        long size = checkUserStorageSize(user);
+        log.info("Byte size storage " + size);
+        log.info(String.format("User %s storage size: %s", user.getId().toString(), FileUtils.convertSizeBytesToGB(size)));
+        return user.getPlan().getMaxUploadCapacity() > FileUtils.convertSizeBytesToGB(size);
     }
 
 

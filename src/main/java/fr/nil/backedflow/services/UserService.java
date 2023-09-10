@@ -5,6 +5,8 @@ import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
+import fr.nil.backedflow.manager.StorageManager;
+import fr.nil.backedflow.reponses.UserStorageResponse;
 import fr.nil.backedflow.repositories.*;
 import fr.nil.backedflow.services.files.FileService;
 import jakarta.persistence.EntityManager;
@@ -36,6 +38,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final FileService fileService;
     private final JWTService jwtService;
+    private final StorageManager storageManager;
 
 
     public User createUser(User user) {
@@ -54,6 +57,11 @@ public class UserService {
 
     public UUID getUserIDFromRequest(HttpServletRequest request) {
         return UUID.fromString(jwtService.extractClaim(request.getHeader("Authorization").replace("Bearer", ""), claims -> claims.get("userID").toString()));
+    }
+
+
+    public boolean canUserUpload(User user) {
+        return user.getIsAccountVerified() && storageManager.hasEnoughStorageSize(user);
     }
 
 
@@ -82,6 +90,8 @@ public class UserService {
         if (updateRequest.getMail() != null) {
             log.debug("mail will be updated from this request ");
             user.setMail(updateRequest.getMail());
+            user.setIsAccountVerified(false);
+            // todo send Kafka message to mailer to resend mail confirmation
                     }
 
         if (updateRequest.getPassword() != null) {
@@ -101,7 +111,7 @@ public class UserService {
 
     public void deleteUserByEmail(String email) {
 
-        User user = userRepository.findByMail(email).orElseThrow();
+        User user = getUserByMail(email);
 
         if (folderRepository.findAllByFolderOwner(user.getId()).isPresent()) {
             if (log.isDebugEnabled())
@@ -125,5 +135,16 @@ public class UserService {
 
     }
 
+
+    public UserStorageResponse getUserStorageInfo(String userID) {
+        User user = getUserById(UUID.fromString(userID));
+
+        return UserStorageResponse.builder()
+                .usedStorage(storageManager.getFormattedUserStorageSize(user))
+                .maxStorage(Float.valueOf(user.getPlan().getMaxUploadCapacity()))
+                .build();
+
+
+    }
 
 }

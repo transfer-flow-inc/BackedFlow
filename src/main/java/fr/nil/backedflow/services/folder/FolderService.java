@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +36,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Date;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Data
@@ -108,6 +108,9 @@ public class FolderService {
     public ResponseEntity<FolderResponse> handleSingleFileUpload(MultipartFile file, @RequestParam UUID folderUUID, HttpServletRequest request) {
         User user = userRepository.findUserById(userService.getUserIDFromRequest(request)).orElseThrow(UserNotFoundException::new);
 
+        if (!userService.canUserUpload(user))
+            throw new UnauthorizedFolderCreationException();
+
         if (folderRepository.findById(folderUUID).isEmpty())
             throw new FolderNotFoundException();
 
@@ -121,9 +124,10 @@ public class FolderService {
             Path tempPath = Paths.get(storageManager.getTempStoragePath() + File.separator + file.getOriginalFilename());
             byte[] bytes = file.getBytes();
             Files.write(tempPath, bytes);
-
             // Encrypt the file and save to the final location
-            Path finalPath = Paths.get(storageManager.getUserFileStoragePath(user) + File.separator + file.getOriginalFilename());
+            Path finalPath = Paths.get(storageManager.getUserFileStoragePathToFolder(user, targetFolder) + File.separator + getUniqueFilename(file.getOriginalFilename(), user, targetFolder));
+
+
             fileEncryptorDecryptor.encryptFile(tempPath.toFile(), finalPath.toFile());
 
             // Delete the temporary file
@@ -161,8 +165,8 @@ public class FolderService {
                 .folderViews(0)
                 .url(folderURL)
                 .accessKey(AccessKeyGenerator.generateAccessKey(32))
-                .uploadedAt(Date.valueOf(LocalDate.now()))
-                .expiresAt(Date.valueOf(LocalDate.now().plusDays(7)))
+                .uploadedAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(7))
                 .isPrivate(false)
                 .isShared(true)
                 .build();
@@ -174,6 +178,10 @@ public class FolderService {
     public Folder createEmptyFolder(FolderCreationRequest creationRequest, HttpServletRequest request) {
 
         User user = userRepository.findUserById(userService.getUserIDFromRequest(request)).orElseThrow(UserNotFoundException::new);
+
+        if (!userService.canUserUpload(user))
+            throw new UnauthorizedFolderCreationException();
+
         if (logger.isDebugEnabled())
             logger.debug(String.format("Creating a new folder with the name : %s requested by userID : %s", creationRequest.getFolderName(), user.getId()));
 
@@ -187,8 +195,8 @@ public class FolderService {
                 .isShared(true)
                 .folderViews(0)
                 .message(creationRequest.getMessage())
-                .uploadedAt(Date.valueOf(LocalDate.now()))
-                .expiresAt(Date.valueOf(LocalDate.now().plusDays(expiryDate)))
+                .uploadedAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(expiryDate))
                 .recipientsEmails(creationRequest.getRecipientsEmails())
                 .url(FolderUtils.generateRandomURL())
                 .build());
@@ -265,5 +273,29 @@ public class FolderService {
         return ResponseEntity.ok(folderList.get());
 
     }
+
+
+    public List<Folder> getExpiredFolders() {
+        return folderRepository.findByExpiresAtBefore(LocalDateTime.now().plusDays(14));
+    }
+
+    private String getUniqueFilename(String originalFilename, User user, Folder targetFolder) {
+        // Check if a file with the same name already exists in the target folder
+        File existingFile = new File(storageManager.getUserFileStoragePathToFolder(user, targetFolder) + File.separator + originalFilename);
+        int count = 0;
+        String newFilename = originalFilename;
+
+        // If a file with the same name exists, append a unique identifier to the new file's name
+        while (existingFile.exists()) {
+            count++;
+            String nameWithoutExtension = FilenameUtils.getBaseName(originalFilename);
+            String extension = FilenameUtils.getExtension(originalFilename);
+            newFilename = nameWithoutExtension + "(" + count + ")." + extension;
+            existingFile = new File(storageManager.getUserFileStoragePathToFolder(user, targetFolder) + File.separator + newFilename);
+        }
+
+        return newFilename;
+    }
+
 
 }

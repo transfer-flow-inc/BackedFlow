@@ -6,6 +6,7 @@ import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.exceptions.UnauthorizedUserAccessException;
+import fr.nil.backedflow.reponses.UserStorageResponse;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,6 +68,11 @@ public class UserController {
         userService.deleteUserByEmail(email);
         if (logger.isDebugEnabled())
             logger.debug(String.format("The account with the email : %s has been deleted.", email));
+    }
+
+    @GetMapping("/{userID}/storage")
+    public ResponseEntity<UserStorageResponse> getUserStorageSize(@PathVariable(value = "userID") String userID, HttpServletRequest request) {
+        return ResponseEntity.ok(userService.getUserStorageInfo(userID));
     }
 
 

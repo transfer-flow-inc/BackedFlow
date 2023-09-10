@@ -18,6 +18,8 @@
     import lombok.RequiredArgsConstructor;
     import lombok.extern.slf4j.Slf4j;
     import org.springframework.beans.factory.annotation.Value;
+    import org.springframework.core.env.Environment;
+    import org.springframework.core.env.Profiles;
     import org.springframework.kafka.core.KafkaTemplate;
     import org.springframework.security.authentication.AuthenticationManager;
     import org.springframework.security.authentication.BadCredentialsException;
@@ -48,6 +50,7 @@ public class AuthenticationService {
 
     @Value("${transferflow.auth.sso.google.client.id:979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com}")
     private String googleSSOClientID;
+        private final Environment env;
 
     /**
      * Registers a new user with the provided information.
@@ -68,6 +71,9 @@ public class AuthenticationService {
                 .isAccountVerified(false)
                 .avatar("logo_dark.png")
                 .build();
+
+        if (env.acceptsProfiles(Profiles.of("apitesting")))
+            user.setIsAccountVerified(true);
 
         user = userRepository.save(user);
 
