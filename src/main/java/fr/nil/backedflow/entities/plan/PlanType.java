@@ -6,7 +6,7 @@ import java.time.LocalDate;
 public enum PlanType {
 
 
-    FREE(0, 10, "Free Plan"),
+    FREE(0, 5, "Free Plan"),
     PREMIUM(2.99F, 20, "Premium Plan"),
     ULTIMATE(4.99F, 50, "Ultimate Plan");
 

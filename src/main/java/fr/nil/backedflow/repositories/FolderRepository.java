@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,4 +22,7 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
         boolean existsByUrl(@Param("url") String url);
 
         void deleteAllByFolderOwnerMail(String email);
+
+        List<Folder> findByExpiresAtBefore(LocalDateTime dateTime);
+
 }

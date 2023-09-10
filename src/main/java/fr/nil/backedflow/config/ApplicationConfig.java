@@ -1,15 +1,16 @@
 package fr.nil.backedflow.config;
 
 
+import fr.nil.backedflow.jobs.DailyTaskJob;
 import fr.nil.backedflow.repositories.UserRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import org.quartz.*;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -18,8 +19,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.concurrent.Executor;
 
 /**
  This is the application configuration class.
@@ -89,14 +88,31 @@ public class ApplicationConfig {
         return r -> r.config().commonTags("application", "backedflow");
     }
 
-    @Bean(name = "taskExecutor")
-    public Executor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(2);
-        executor.setQueueCapacity(100);
-        executor.setThreadNamePrefix("poolThread-");
-        executor.initialize();
-        return executor;
+    @Bean
+    public JobDetail jobDetail() {
+        return JobBuilder.newJob(DailyTaskJob.class)
+                .withIdentity("ExpiredFoldersJob")
+                .storeDurably()
+                .build();
     }
+
+    @Bean
+    public Trigger trigger(JobDetail job) {
+        return TriggerBuilder.newTrigger()
+                .forJob(job)
+                .withIdentity("ExpiredFoldersTrigger")
+                .withSchedule(CronScheduleBuilder.cronSchedule("0/15 * * * * ?"))
+                .build();
+    }
+/*
+    @Bean
+    public Scheduler scheduler(Trigger trigger, JobDetail job, SchedulerFactoryBean factory)
+            throws SchedulerException {
+        Scheduler scheduler = factory.getScheduler();
+        scheduler.scheduleJob(job, trigger);
+        scheduler.start();
+        return scheduler;
+    }
+
+ */
 }
