@@ -18,8 +18,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.File;
-import java.sql.Date;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -78,7 +77,7 @@ class FileServiceTest {
     @Test
     void testIsFileExpired() {
         FileEntity mockFileEntity = new FileEntity();
-        mockFileEntity.setExpiresAt(Date.valueOf(LocalDate.now().plusDays(-1)));
+        mockFileEntity.setExpiresAt(LocalDateTime.now().plusDays(-1));
 
         boolean isExpired = fileService.isFileExpired(mockFileEntity);
 

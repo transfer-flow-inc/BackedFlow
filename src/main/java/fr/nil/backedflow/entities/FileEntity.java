@@ -7,7 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Date;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -21,8 +21,8 @@ public class FileEntity {
     @Id
     @GeneratedValue()
     private UUID id;
-    private Date uploadedAt;
-    private Date expiresAt;
+    private LocalDateTime uploadedAt;
+    private LocalDateTime expiresAt;
     private Long fileSize;
     private String fileType;
     private String filePath;

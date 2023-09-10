@@ -21,8 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.Date;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -59,8 +58,8 @@ public class FileService {
     public FileEntity addFileEntity(File file) {
         FileEntity fileEntity = FileEntity.builder()
         .id(UUID.randomUUID())
-        .uploadedAt(Date.valueOf(LocalDate.now()))
-        .expiresAt(Date.valueOf(LocalDate.now().plusDays(expiryDate)))
+                .uploadedAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusDays(expiryDate))
         .fileSize(file.length())
         .fileType(fileUtils.getFileExtension(file))
         .filePath(file.getAbsolutePath())
@@ -105,7 +104,7 @@ public class FileService {
 
     public boolean isFileExpired(FileEntity fileEntity)
     {
-        return fileEntity.getExpiresAt().after(Date.valueOf(LocalDate.now()));
+        return fileEntity.getExpiresAt().isAfter(LocalDateTime.now());
     }
     public List<FileEntity> getAllFiles() {
         return fileRepository.findAll();
