@@ -43,7 +43,7 @@ public class User implements UserDetails {
     private String avatar;
     private Boolean isAccountVerified;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private List<Folder> userFolders;
 
     @OneToOne(cascade = CascadeType.ALL)
