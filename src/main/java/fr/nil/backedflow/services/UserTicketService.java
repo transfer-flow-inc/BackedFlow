@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class UserTicketService {
                 .user(user)
                 .subject(ticketRequest.getSubject())
                 .message(ticketRequest.getMessage())
+                .sentAt(LocalDateTime.now())
                 .build();
         userTicketRepository.save(userTicket);
         return userTicketRepository.save(userTicket);
