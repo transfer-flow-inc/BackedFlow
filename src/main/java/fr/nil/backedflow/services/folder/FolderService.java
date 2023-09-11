@@ -276,7 +276,7 @@ public class FolderService {
 
 
     public List<Folder> getExpiredFolders() {
-        return folderRepository.findByExpiresAtBefore(LocalDateTime.now().plusDays(14));
+        return folderRepository.findByExpiresAtBefore(LocalDateTime.now());
     }
 
     private String getUniqueFilename(String originalFilename, User user, Folder targetFolder) {

@@ -101,18 +101,7 @@ public class ApplicationConfig {
         return TriggerBuilder.newTrigger()
                 .forJob(job)
                 .withIdentity("ExpiredFoldersTrigger")
-                .withSchedule(CronScheduleBuilder.cronSchedule("0/15 * * * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("0 0 0 * * ?"))
                 .build();
     }
-/*
-    @Bean
-    public Scheduler scheduler(Trigger trigger, JobDetail job, SchedulerFactoryBean factory)
-            throws SchedulerException {
-        Scheduler scheduler = factory.getScheduler();
-        scheduler.scheduleJob(job, trigger);
-        scheduler.start();
-        return scheduler;
-    }
-
- */
 }
