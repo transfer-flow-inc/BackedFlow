@@ -1,5 +1,8 @@
 package fr.nil.backedflow.entities;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import fr.nil.backedflow.entities.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,8 +39,12 @@ public class Folder {
 
     private int folderViews;
 
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonFormat(pattern = "dd/MM/yyyy hh:mm")
     private LocalDateTime uploadedAt;
 
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonFormat(pattern = "dd/MM/yyyy hh:mm")
     private LocalDateTime expiresAt;
 
     @ElementCollection
