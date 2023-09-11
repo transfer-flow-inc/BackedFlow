@@ -64,3 +64,4 @@ jobs:
         run: mvn -B -X verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=transfer-flow-inc_BackedFlow_AYpv1jj5Xot6655Pl1TX -Dsonar.projectName='BackedFlow'   -Dsonar.coverage.exclusions=fr/nil/backedflow/controller/**,config**,exception**,auth** -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml
 
 
+

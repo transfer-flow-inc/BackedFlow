@@ -169,12 +169,11 @@
 						<configuration>
 							<dataFile>${project.build.directory}/coverage-reports/jacoco.exec</dataFile>
 							<outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
-                            <excludes>
-                                <exclude>fr/nil/backedflow/controller/**</exclude>
+               <excludes>
+                <exclude>fr/nil/backedflow/controller/**</exclude>
 								<exclude>fr/nil/backedflow/exceptions/**</exclude>
 								<exclude>fr/nil/backedflow/config/**</exclude>
 								<exclude>fr/nil/backedflow/auth/**</exclude>
-
 							</excludes>
 						</configuration>
 					</execution>
