@@ -4,10 +4,13 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.user.UserTicket;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.exceptions.UnauthorizedUserAccessException;
 import fr.nil.backedflow.reponses.UserStorageResponse;
+import fr.nil.backedflow.requests.TicketMessageRequest;
 import fr.nil.backedflow.services.UserService;
+import fr.nil.backedflow.services.UserTicketService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +32,7 @@ public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
     private final FolderService folderService;
+    private final UserTicketService userTicketService;
   
     @PatchMapping("/{email}")
     public ResponseEntity<AuthenticationResponse> updateUserById(@PathVariable(value = "email", required = true) String email, @RequestParam(value = "oldPassword", required = false) String oldPassword, @RequestBody UserUpdateRequest userUpdateRequest, Authentication authentication) throws PasswordMismatchException {
@@ -52,6 +56,11 @@ public class UserController {
     }
 
 
+    @PostMapping("/tickets")
+    public ResponseEntity<UserTicket> handleTicketSend(@RequestBody TicketMessageRequest ticketSendRequest, HttpServletRequest request) {
+        return ResponseEntity.ok(userTicketService.handleTicketRequest(ticketSendRequest));
+
+    }
   
     @DeleteMapping("/{email}")
     @Transactional

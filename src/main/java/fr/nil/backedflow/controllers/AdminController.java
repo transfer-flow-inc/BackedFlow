@@ -2,9 +2,9 @@ package fr.nil.backedflow.controllers;
 
 
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.entities.user.UserTicket;
 import fr.nil.backedflow.services.AdminService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -36,5 +36,10 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getUserByID(id));
     }
 
+    @GetMapping("/tickets")
+    public ResponseEntity<Page<UserTicket>> getAllTickets(Pageable pageable) {
+        Page<UserTicket> tickets = adminService.getAllTickets(pageable);
+        return ResponseEntity.ok(tickets);
+    }
 
 }

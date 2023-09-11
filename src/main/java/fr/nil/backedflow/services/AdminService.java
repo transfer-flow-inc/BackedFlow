@@ -1,12 +1,15 @@
 package fr.nil.backedflow.services;
 
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.entities.user.UserTicket;
 import fr.nil.backedflow.repositories.UserRepository;
+import fr.nil.backedflow.repositories.UserTicketRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 import java.util.UUID;
 
 
@@ -16,7 +19,7 @@ import java.util.UUID;
 public class AdminService {
 
     private final UserRepository userRepository;
-
+    private final UserTicketRepository userTicketRepository;
 
 
     //add pagination to this 20 user per page
@@ -30,5 +33,9 @@ public class AdminService {
 
     }
 
+
+    public Page<UserTicket> getAllTickets(Pageable pageable) {
+        return userTicketRepository.findAll(pageable);
+    }
 
 }

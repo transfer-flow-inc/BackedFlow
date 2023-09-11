@@ -154,6 +154,10 @@
 						<configuration>
 							<destFile>${project.build.directory}/coverage-reports/jacoco.exec</destFile>
 							<propertyName>surefireArgLine</propertyName>
+                            <excludes>
+                                <exclude>fr/nil/backedflow/controller/**</exclude>
+                                <exclude>fr/nil/backedflow/config/**</exclude>
+                            </excludes>
 						</configuration>
 					</execution>
 					<execution>
@@ -165,6 +169,10 @@
 						<configuration>
 							<dataFile>${project.build.directory}/coverage-reports/jacoco.exec</dataFile>
 							<outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                            <excludes>
+                                <exclude>fr/nil/backedflow/controller/**</exclude>
+                                <exclude>fr/nil/backedflow/config/**</exclude>
+                            </excludes>
 						</configuration>
 					</execution>
 					<execution>
