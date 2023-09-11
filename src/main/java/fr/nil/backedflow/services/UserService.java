@@ -129,13 +129,6 @@ public class UserService {
     }
 
 
-    public void updateUser(User user) {
-        log.debug("Updating user {}", user);
-        userRepository.updateUser(user.getFirstName(), user.getLastName(), user.getMail(), user.getPassword(), user.getId(), user.getAvatar());
-
-    }
-
-
     public UserStorageResponse getUserStorageInfo(String userID) {
         User user = getUserById(UUID.fromString(userID));
 
