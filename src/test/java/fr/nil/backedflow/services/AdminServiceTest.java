@@ -37,6 +37,7 @@ class AdminServiceTest {
     }
 
     @Test
+
     void testGetAllUsers() {
         Pageable pageable = Pageable.ofSize(20);
         Page<User> users = mock(Page.class);
@@ -49,6 +50,7 @@ class AdminServiceTest {
 
     @Test
     void testGetUserByID() {
+
         UUID id = UUID.randomUUID();
         User user = mock(User.class);
         when(userRepository.findUserById(id)).thenReturn(Optional.of(user));
@@ -59,6 +61,7 @@ class AdminServiceTest {
     }
 
     @Test
+
     void testGetAllTickets() {
         Pageable pageable = Pageable.ofSize(20);
         Page<UserTicket> tickets = mock(Page.class);
