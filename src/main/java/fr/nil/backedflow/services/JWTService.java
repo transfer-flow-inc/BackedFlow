@@ -23,7 +23,7 @@ import java.util.function.Function;
 public class JWTService {
 
     @Value("${transferflow.api.token.secret.key}")
-    private String secretKey;
+    public String secretKey;
     private static final Logger logger = LoggerFactory.getLogger(JWTService.class);
 
 
@@ -84,7 +84,7 @@ public class JWTService {
         return getExpirationDate(token).before(new Date());
     }
 
-    private Key getSignInKey() {
+    public Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }

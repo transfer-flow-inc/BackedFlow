@@ -1,4 +1,4 @@
-package fr.nil.backedflow.reponses;
+package fr.nil.backedflow.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

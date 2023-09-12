@@ -49,10 +49,6 @@ public class StorageManager {
 
     }
 
-    public String getFilePathFromUserStorage(File file, User user)
-    {
-        return getUserFileStoragePath(user) + File.separator + file.getName();
-    }
 
     public long checkStorageSize() {
         try (Stream<Path> files = Files.walk(Paths.get(storagePath))) {

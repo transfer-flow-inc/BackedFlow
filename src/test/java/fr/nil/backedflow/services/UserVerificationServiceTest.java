@@ -13,8 +13,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserVerificationServiceTest {
@@ -34,17 +33,7 @@ class UserVerificationServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    @Test
-    void testCheckVerificationToken_InvalidToken() {
-        // Mock behavior
-        when(userVerificationRepository.findUserVerificationByVerificationToken(anyString())).thenReturn(Optional.empty());
 
-        // Invoke the method
-        boolean result = userVerificationService.checkVerificationToken("invalidToken");
-
-        // Assert the result
-        assertFalse(result);
-    }
 
     @Test
     void testGenerateVerificationToken() {
@@ -77,6 +66,37 @@ class UserVerificationServiceTest {
 
         // Verify the behavior
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void testCheckVerificationToken_InvalidToken() {
+        String verificationToken = "invalidToken";
+
+        when(userVerificationRepository.findUserVerificationByVerificationToken(verificationToken))
+                .thenReturn(Optional.empty());
+
+        boolean result = userVerificationService.checkVerificationToken(verificationToken);
+
+        assertFalse(result);
+        verify(userVerificationRepository, never()).deleteById(any());
+    }
+
+    @Test
+    public void testCheckVerificationToken_ValidToken() {
+        String verificationToken = "validToken";
+        UserVerification userVerification = mock(UserVerification.class);
+        User user = mock(User.class);
+
+        when(userVerificationRepository.findUserVerificationByVerificationToken(verificationToken))
+                .thenReturn(Optional.of(userVerification));
+        when(userVerification.getUser()).thenReturn(user);
+        when(user.getId()).thenReturn(UUID.randomUUID());
+        when(userRepository.findUserById(user.getId())).thenReturn(Optional.of(user));
+
+        boolean result = userVerificationService.checkVerificationToken(verificationToken);
+
+        assertTrue(result);
+        verify(userVerificationRepository, times(1)).deleteById(userVerification.getId());
     }
 
 }

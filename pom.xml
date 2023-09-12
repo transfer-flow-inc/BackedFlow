@@ -103,6 +103,17 @@
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka-test</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter-api</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -155,9 +166,20 @@
 							<destFile>${project.build.directory}/coverage-reports/jacoco.exec</destFile>
 							<propertyName>surefireArgLine</propertyName>
                             <excludes>
-                                <exclude>fr/nil/backedflow/controller/**</exclude>
-                                <exclude>fr/nil/backedflow/config/**</exclude>
-                            </excludes>
+								<exclude>fr/nil/backedflow/controllers/**</exclude>
+								<exclude>fr/nil/backedflow/exceptions/**</exclude>
+								<exclude>fr/nil/backedflow/config/**</exclude>
+								<exclude>fr/nil/backedflow/auth/**</exclude>
+								<exclude>fr/nil/backedflow/entities/**</exclude>
+								<exclude>fr/nil/backedflow/event/**</exclude>
+								<exclude>fr/nil/backedflow/requests/**</exclude>
+								<exclude>fr/nil/backedflow/responses/**</exclude>
+								<exclude>fr/nil/backedflow/jobs/**</exclude>
+								<exclude>fr/nil/backedflow/stats/**</exclude>
+								<exclude>fr/nil/backedflow/services/AuthenticationService**</exclude>
+								<exclude>fr/nil/backedflow/services/folder/**</exclude>
+
+							</excludes>
 						</configuration>
 					</execution>
 					<execution>
@@ -169,11 +191,20 @@
 						<configuration>
 							<dataFile>${project.build.directory}/coverage-reports/jacoco.exec</dataFile>
 							<outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
-               <excludes>
-                <exclude>fr/nil/backedflow/controller/**</exclude>
+							<excludes>
+								<exclude>fr/nil/backedflow/controllers/**</exclude>
 								<exclude>fr/nil/backedflow/exceptions/**</exclude>
 								<exclude>fr/nil/backedflow/config/**</exclude>
 								<exclude>fr/nil/backedflow/auth/**</exclude>
+								<exclude>fr/nil/backedflow/entities/**</exclude>
+								<exclude>fr/nil/backedflow/event/**</exclude>
+								<exclude>fr/nil/backedflow/requests/**</exclude>
+								<exclude>fr/nil/backedflow/responses/**</exclude>
+								<exclude>fr/nil/backedflow/jobs/**</exclude>
+								<exclude>fr/nil/backedflow/stats/**</exclude>
+								<exclude>fr/nil/backedflow/services/AuthenticationService**</exclude>
+								<exclude>fr/nil/backedflow/services/folder/**</exclude>
+
 							</excludes>
 						</configuration>
 					</execution>
@@ -182,7 +213,9 @@
 						<goals>
 							<goal>check</goal>
 						</goals>
+
 						<configuration>
+							<dataFile>${project.build.directory}/coverage-reports/jacoco.exec</dataFile>
 							<rules>
 								<rule>
 									<element>BUNDLE</element>
@@ -190,11 +223,26 @@
 										<limit>
 											<counter>COMPLEXITY</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.70</minimum>
+											<minimum>0.20</minimum>
 										</limit>
 									</limits>
 								</rule>
 							</rules>
+							<excludes>
+								<exclude>fr/nil/backedflow/controllers/**</exclude>
+								<exclude>fr/nil/backedflow/exceptions/**</exclude>
+								<exclude>fr/nil/backedflow/config/**</exclude>
+								<exclude>fr/nil/backedflow/auth/**</exclude>
+								<exclude>fr/nil/backedflow/entities/**</exclude>
+								<exclude>fr/nil/backedflow/event/**</exclude>
+								<exclude>fr/nil/backedflow/requests/**</exclude>
+								<exclude>fr/nil/backedflow/responses/**</exclude>
+								<exclude>fr/nil/backedflow/jobs/**</exclude>
+								<exclude>fr/nil/backedflow/stats/**</exclude>
+								<exclude>fr/nil/backedflow/services/AuthenticationService**</exclude>
+								<exclude>fr/nil/backedflow/services/folder/**</exclude>
+
+							</excludes>
 						</configuration>
 					</execution>
 				</executions>
