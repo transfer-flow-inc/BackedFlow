@@ -1,11 +1,10 @@
-package fr.nil.backedflow.reponses;
+package fr.nil.backedflow.responses;
 
+import fr.nil.backedflow.entities.Folder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import fr.nil.backedflow.entities.Folder;
 
 @Data
 @Builder

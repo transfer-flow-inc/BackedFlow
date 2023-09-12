@@ -9,7 +9,6 @@ import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.services.utils.FileUtils;
 import fr.nil.backedflow.stats.MetricsEnum;
 import io.micrometer.core.instrument.MeterRegistry;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-@Data
 @RequiredArgsConstructor
 @Service
 public class FileService {

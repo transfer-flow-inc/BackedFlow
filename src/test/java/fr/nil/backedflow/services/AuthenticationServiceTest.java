@@ -47,6 +47,9 @@ class AuthenticationServiceTest {
     @InjectMocks
     private AuthenticationService authenticationService;
 
+    @InjectMocks
+    private UserService userService;
+
     private User user;
 
     @BeforeEach
@@ -56,5 +59,6 @@ class AuthenticationServiceTest {
         user = User.builder().id(UUID.randomUUID()).firstName("test").lastName("test").build();
 
     }
+
 
 }

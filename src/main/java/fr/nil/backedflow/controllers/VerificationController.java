@@ -2,8 +2,8 @@ package fr.nil.backedflow.controllers;
 
 
 import fr.nil.backedflow.exceptions.InvalidTokenException;
-import fr.nil.backedflow.reponses.AccountVerificationResponse;
 import fr.nil.backedflow.requests.AccountVerificationRequest;
+import fr.nil.backedflow.responses.AccountVerificationResponse;
 import fr.nil.backedflow.services.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

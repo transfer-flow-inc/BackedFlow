@@ -6,12 +6,11 @@ import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.manager.StorageManager;
-import fr.nil.backedflow.reponses.UserStorageResponse;
 import fr.nil.backedflow.repositories.*;
+import fr.nil.backedflow.responses.UserStorageResponse;
 import fr.nil.backedflow.services.files.FileService;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,7 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Data
+
 @RequiredArgsConstructor
 @Service
 @Slf4j

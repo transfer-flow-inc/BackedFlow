@@ -7,10 +7,10 @@ import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.event.TransferNotificationEvent;
 import fr.nil.backedflow.exceptions.*;
 import fr.nil.backedflow.manager.StorageManager;
-import fr.nil.backedflow.reponses.FolderResponse;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
+import fr.nil.backedflow.responses.FolderResponse;
 import fr.nil.backedflow.services.JWTService;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
@@ -19,7 +19,6 @@ import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FolderUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FilenameUtils;
@@ -39,7 +38,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Data
+
 @RequiredArgsConstructor
 @Service
 public class FolderService {
@@ -52,7 +51,7 @@ public class FolderService {
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
     private final EntityManager entityManager;
-    private Logger logger = LoggerFactory.getLogger(FolderService.class);
+    private final Logger logger = LoggerFactory.getLogger(FolderService.class);
     private final UserService userService;
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
@@ -60,49 +59,6 @@ public class FolderService {
 
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE:7}")
     private int expiryDate;
-
-
-    @SneakyThrows
-    public ResponseEntity<Folder> handleMultipleFileUpload(MultipartFile[] files, String folderURL, HttpServletRequest request)
-    {
-        if(folderURL == null)
-            folderURL = FolderUtils.generateRandomURL();
-
-        User user = userRepository.findUserById(userService.getUserIDFromRequest(request)).orElseThrow(UserNotFoundException::new);
-
-    List<FileEntity> fileEntities = new ArrayList<>();
-    Folder folder = addFolderToDatabase(user, folderURL);
-
-        for (MultipartFile file : files) {
-        if (file.isEmpty()) {
-            continue;
-        }
-
-        try {
-            // Save the file to a temporary location
-            Path tempPath = Paths.get(storageManager.getTempStoragePath() + File.separator + file.getOriginalFilename());
-            byte[] bytes = file.getBytes();
-            Files.write(tempPath, bytes);
-
-            // Encrypt the file and save to the final location
-            Path finalPath = Paths.get(storageManager.getUserFileStoragePath(user) + File.separator + file.getOriginalFilename());
-            fileEncryptorDecryptor.encryptFile(tempPath.toFile(), finalPath.toFile());
-
-            // Delete the temporary file
-            Files.delete(tempPath);
-
-            fileEntities.add(fileService.addFileEntity(finalPath.toFile()));
-        } catch (Exception e) {
-            // Handle exceptions appropriately,
-            logger.error(String.format("An error occurred during the file upload (Error message : %s ).", e.getMessage()));
-            logger.debug(Arrays.toString(e.getStackTrace()));
-            throw new FileUploadException();
-        }
-
-    }
-        addFilesToFolder(folder, fileEntities);
-        return ResponseEntity.ok(folder);
-}
 
     @SneakyThrows
     public ResponseEntity<FolderResponse> handleSingleFileUpload(MultipartFile file, @RequestParam UUID folderUUID, HttpServletRequest request) {
@@ -138,6 +94,7 @@ public class FolderService {
             // Handle exceptions appropriately,
             logger.error(String.format("An error occurred during the file upload (Error message : %s ).", e.getMessage()));
             logger.debug(Arrays.toString(e.getStackTrace()));
+            e.printStackTrace();
             throw new FileUploadException();
 
         }

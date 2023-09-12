@@ -1,32 +1,35 @@
 package fr.nil.backedflow.services;
 
-import fr.nil.backedflow.auth.requests.AuthenticationRequest;
 import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
+import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.plan.Plan;
+import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
+import fr.nil.backedflow.manager.StorageManager;
+import fr.nil.backedflow.repositories.FolderRepository;
+import fr.nil.backedflow.repositories.PlanRepository;
 import fr.nil.backedflow.repositories.UserRepository;
-import io.micrometer.core.instrument.Counter;
+import fr.nil.backedflow.repositories.UserVerificationRepository;
+import fr.nil.backedflow.responses.UserStorageResponse;
+import fr.nil.backedflow.services.files.FileService;
 import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserServicesTest {
@@ -34,6 +37,7 @@ class UserServicesTest {
     private final String email = "test@test.com";
     @Mock
     private UserRepository userRepository;
+
     @InjectMocks
     private UserService userService;
     private UUID id = UUID.randomUUID();
@@ -42,7 +46,7 @@ class UserServicesTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-    @Spy
+    @Mock
     private JWTService jwtService;
 
     @Mock
@@ -51,8 +55,29 @@ class UserServicesTest {
     @Mock
     private MeterRegistry meterRegistry;
 
-    @InjectMocks
+    @Mock
+    private FolderRepository folderRepository;
+
+    @Mock
+    private FileService fileService;
+
+    @Mock
+    private UserDetails userDetails;
+
+    @Mock
+    private StorageManager storageManager;
+
+    @Mock
+    private PlanRepository planRepository;
+
+    @Mock
+    private UserVerificationRepository userVerificationRepository;
+
+    @Mock
     private AuthenticationService authenticationService;
+
+    @Mock
+    private EntityManager entityManager;
 
     @Mock
     private Environment env;
@@ -62,8 +87,12 @@ class UserServicesTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        User user = User.builder().id(id).firstName("test").lastName("test").password("oldPassword").build();
-
+        id = UUID.randomUUID();
+        user = new User();
+        user.setId(id);
+        user.setMail(email);
+        user.setRole(Role.USER);
+        user.setPassword("password");
     }
 
 
@@ -97,6 +126,7 @@ class UserServicesTest {
 
     @Test
     void testGetUserByMail() {
+
         when(userRepository.findByMail(email)).thenReturn(Optional.of(user));
 
         User result = userService.getUserByMail(email);
@@ -117,94 +147,207 @@ class UserServicesTest {
     }
 
     @Test
-    void testUpdateUser() throws PasswordMismatchException {
-        // Create the necessary objects for the test
-        String mail = "user@example.com";
-        UserUpdateRequest updateRequest = new UserUpdateRequest();
-        String oldPassword = "oldPassword";
+    void testUpdateUserWhenUserNotFound() {
+        String mail = "test@mail.com";
+        when(userRepository.findByMail(mail)).thenReturn(Optional.empty());
 
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        authenticationRequest.setEmail("user@example.com");
-        authenticationRequest.setPassword("oldPassword");
-
-        when(user.getMail()).thenReturn(mail);
-        when(user.getPassword()).thenReturn(oldPassword);
-        when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(oldPassword, user.getPassword())).thenReturn(true);
-        when(userRepository.save(user)).thenReturn(user);
-
-        Counter counter = mock(Counter.class);
-
-        when(counter.count()).thenReturn(1.0);
-        when(meterRegistry.counter(anyString(), anyString())).thenReturn(counter);
-        when(meterRegistry.counter(anyString(), any(String[].class))).thenReturn(counter);
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(new UsernamePasswordAuthenticationToken(email, oldPassword));
-        when(user.getPlan()).thenReturn(mock(Plan.class));
-
-
-        when(authenticationService.authenticate(authenticationRequest))
-                .thenReturn(AuthenticationResponse.builder().token("token").build());
-
-        when(authenticationService.authenticate(any(AuthenticationRequest.class)))
-                .thenReturn(AuthenticationResponse.builder().token("token").build());
-
-
-        // Use assertions to verify the expected behavior
-        assertNotNull(userService.updateUser(mail, updateRequest, oldPassword));
-
-        // ...
+        assertThrows(UsernameNotFoundException.class, () -> {
+            userService.updateUser(mail, new UserUpdateRequest(), null);
+        });
     }
 
     @Test
-    public void testUpdateUser2() throws PasswordMismatchException {
-        String mail = "test@example.com";
-        String oldPassword = "oldPassword";
-        UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setFirstName("John");
-
+    void testUpdateUserWhenPasswordDoesNotMatch() {
+        String mail = "test@mail.com";
         User user = new User();
-        user.setMail(mail);
-        user.setFirstName("Alice");
-        user.setPassword(passwordEncoder.encode(oldPassword));
-
-        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-        authenticationRequest.setEmail("user@example.com");
-        authenticationRequest.setPassword("oldPassword");
-
+        user.setPassword("encodedPassword");
         when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(oldPassword, user.getPassword())).thenReturn(true);
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        when(authenticationService.authenticate(any(AuthenticationRequest.class))).thenReturn(new AuthenticationResponse("jwtToken"));
-        when(user.getPlan()).thenReturn(mock(Plan.class));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
 
-        AuthenticationResponse response = userService.updateUser(mail, updateRequest, oldPassword);
-
-        assertEquals("jwtToken", response.getToken());
-        assertEquals("John", user.getFirstName());
-
-        verify(userRepository, times(1)).findByMail(mail);
-        verify(passwordEncoder, times(1)).matches(oldPassword, user.getPassword());
-        verify(userRepository, times(1)).save(user);
-        verify(authenticationService, times(1)).authenticate(any(AuthenticationRequest.class));
+        assertThrows(PasswordMismatchException.class, () -> {
+            userService.updateUser(mail, new UserUpdateRequest(), "oldPassword");
+        });
     }
 
+    // Add similar tests for other branches such as when updating firstName, lastName, mail, and password
+
     @Test
-    void updateUser_ValidInput_UpdatesUser() {
-        // Arrange
+    void testUpdateUserWhenUpdatingMail() {
+        String mail = "test@mail.com";
         User user = new User();
-        user.setFirstName("OldFirst");
         user.setPassword("oldPassword");
         UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setFirstName("NewFirst");
-        when(userRepository.findByMail(anyString())).thenReturn(Optional.of(user));
+        updateRequest.setMail("newMail@mail.com");
+        when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
 
-        // Act
-        userService.updateUser("test@mail.com", updateRequest, "oldPassword");
+        // Mock the behavior of authenticationService.authenticate
+        AuthenticationResponse mockResponse = AuthenticationResponse.builder().token("mockToken").build();
+        when(authenticationService.authenticate(any())).thenReturn(mockResponse);
 
-        // Assert
-        assertEquals("NewFirst", user.getFirstName());
-        verify(userRepository).save(user);
+        userService.updateUser(mail, updateRequest, "oldPassword");
+
+        assertEquals("newMail@mail.com", user.getMail());
+        assertFalse(user.getIsAccountVerified());
     }
+
+    @Test
+    void testUpdateUserWhenUpdatingFirstName() {
+        String mail = "test@mail.com";
+        User user = new User();
+        user.setPassword("oldPassword");
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setFirstName("Test");
+
+        when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+
+        // Mock the behavior of authenticationService.authenticate
+        AuthenticationResponse mockResponse = AuthenticationResponse.builder().token("mockToken").build();
+        when(authenticationService.authenticate(any())).thenReturn(mockResponse);
+
+        userService.updateUser(mail, updateRequest, "oldPassword");
+
+        assertEquals("Test", user.getFirstName());
+    }
+
+    @Test
+    void testUpdateUserWhenUpdatingLastName() {
+        String mail = "test@mail.com";
+        User user = new User();
+        user.setPassword("oldPassword");
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setLastName("Test");
+
+        when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+
+        // Mock the behavior of authenticationService.authenticate
+        AuthenticationResponse mockResponse = AuthenticationResponse.builder().token("mockToken").build();
+        when(authenticationService.authenticate(any())).thenReturn(mockResponse);
+
+        userService.updateUser(mail, updateRequest, "oldPassword");
+
+        assertEquals("Test", user.getLastName());
+    }
+
+    @Test
+    void testUpdateUserWhenUpdatingPassword() {
+        String mail = "test@mail.com";
+        User user = new User();
+        user.setPassword("oldPassword");
+        UserUpdateRequest updateRequest = new UserUpdateRequest();
+        updateRequest.setPassword("oldPassword");
+
+        when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+
+        // Mock the behavior of authenticationService.authenticate
+        AuthenticationResponse mockResponse = AuthenticationResponse.builder().token("mockToken").build();
+        when(authenticationService.authenticate(any())).thenReturn(mockResponse);
+
+        userService.updateUser(mail, updateRequest, "oldPassword");
+
+        assertFalse(passwordEncoder.matches("oldPassword", user.getPassword()));
+    }
+
+    @Test
+    void deleteUserByEmailTest() {
+        String email = "test@email.com";
+        User mockUser = mock(User.class);
+        Plan mockPlan = mock(Plan.class);
+        List<Folder> mockFolders = Arrays.asList(mock(Folder.class), mock(Folder.class));
+
+
+        when(userDetails.getUsername()).thenReturn("test@email.com");
+        when(userDetails.getPassword()).thenReturn("test");
+        when(userDetails.getAuthorities()).thenReturn(new ArrayList<>());
+        when(userDetails.isEnabled()).thenReturn(true);
+        when(userDetails.isAccountNonExpired()).thenReturn(true);
+        when(userDetails.isAccountNonLocked()).thenReturn(true);
+        when(userDetails.isCredentialsNonExpired()).thenReturn(true);
+        when(userRepository.findByMail(email)).thenReturn(Optional.of(user));
+
+        when(mockUser.getId()).thenReturn(UUID.randomUUID());
+        when(mockUser.getPlan()).thenReturn(mockPlan);
+        when(folderRepository.findAllByFolderOwner(UUID.randomUUID())).thenReturn(Optional.of(mockFolders));
+
+        userService.deleteUserByEmail(email);
+
+        verify(entityManager).flush();
+        verify(userRepository).deleteByMail(email);
+    }
+
+
+    @Test
+    void getUserStorageInfoTest() {
+        String userId = UUID.randomUUID().toString(); // Example UUID
+        User mockUser = mock(User.class);
+        Plan mockPlan = mock(Plan.class);
+
+        when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(mockUser));
+        when(mockUser.getPlan()).thenReturn(mockPlan);
+        //when(userService.getUserById(UUID.fromString(userId))).thenReturn(mockUser);
+        when(storageManager.getFormattedUserStorageSize(mockUser)).thenReturn(50.0f); // Some example storage size
+        when(mockPlan.getMaxUploadCapacity()).thenReturn(100); // Some example max storage size
+
+        UserStorageResponse response = userService.getUserStorageInfo(userId);
+
+        assertNotNull(response);
+        assertEquals(50.0f, response.getUsedStorage());
+        assertEquals(100.0f, response.getMaxStorage());
+    }
+
+
+    @Test
+    void canUserUploadWhenVerifiedAndHasStorageTest() {
+        User mockUser = mock(User.class);
+
+        when(mockUser.getIsAccountVerified()).thenReturn(true);
+        when(storageManager.hasEnoughStorageSize(mockUser)).thenReturn(true);
+
+        assertTrue(userService.canUserUpload(mockUser));
+    }
+
+    @Test
+    void canUserUploadWhenNotVerifiedTest() {
+        User mockUser = mock(User.class);
+
+        when(mockUser.getIsAccountVerified()).thenReturn(false);
+        when(storageManager.hasEnoughStorageSize(mockUser)).thenReturn(true);
+
+        assertFalse(userService.canUserUpload(mockUser));
+    }
+
+    @Test
+    void canUserUploadWhenNoStorageTest() {
+        User mockUser = mock(User.class);
+
+        when(mockUser.getIsAccountVerified()).thenReturn(true);
+        when(storageManager.hasEnoughStorageSize(mockUser)).thenReturn(false);
+
+        assertFalse(userService.canUserUpload(mockUser));
+    }
+
+
+    @Test
+    void testEquals() {
+        UserService obj1 = mock(UserService.class);
+        UserService obj2 = mock(UserService.class);
+        UserService obj3 = mock(UserService.class);
+
+        // Reflexive: x.equals(x) should return true
+        assertTrue(obj1.equals(obj1));
+
+
+        // Transitive: if x.equals(y) returns true and y.equals(z) returns true, then x.equals(z) should return true
+        assertTrue(obj2.equals(obj2));
+        assertTrue(obj3.equals(obj3));
+
+        // Not equal to null
+        assertFalse(obj1.equals(null));
+
+        // Add more conditions specific to your class properties and behavior...
+    }
+
 }

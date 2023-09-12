@@ -1,6 +1,6 @@
 package fr.nil.backedflow.controllers;
 
-import fr.nil.backedflow.reponses.FolderResponse;
+import fr.nil.backedflow.responses.FolderResponse;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

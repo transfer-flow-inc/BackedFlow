@@ -18,7 +18,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.File;
@@ -67,12 +66,6 @@ public class FolderController {
 
         return ResponseEntity.ok().body(folderService.createEmptyFolder(folderCreationRequest, request));
 
-    }
-
-    @PostMapping("/upload")
-    public ResponseEntity<Folder> multipleFileUpload(@RequestParam("file") MultipartFile[] files, @PathVariable(required = false, name = "folderURL") String folderURL, HttpServletRequest request) {
-
-        return folderService.handleMultipleFileUpload(files, folderURL, request);
     }
 
         // Continue with response creation...
