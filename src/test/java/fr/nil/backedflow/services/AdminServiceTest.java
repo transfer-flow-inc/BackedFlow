@@ -37,7 +37,7 @@ class AdminServiceTest {
     }
 
     @Test
-    public void testGetAllUsers() {
+    void testGetAllUsers() {
         Pageable pageable = Pageable.ofSize(20);
         Page<User> users = mock(Page.class);
         when(userRepository.findAll(pageable)).thenReturn(users);
@@ -48,7 +48,7 @@ class AdminServiceTest {
     }
 
     @Test
-    public void testGetUserByID() {
+    void testGetUserByID() {
         UUID id = UUID.randomUUID();
         User user = mock(User.class);
         when(userRepository.findUserById(id)).thenReturn(Optional.of(user));
@@ -59,7 +59,7 @@ class AdminServiceTest {
     }
 
     @Test
-    public void testGetAllTickets() {
+    void testGetAllTickets() {
         Pageable pageable = Pageable.ofSize(20);
         Page<UserTicket> tickets = mock(Page.class);
         when(userTicketRepository.findAll(pageable)).thenReturn(tickets);
