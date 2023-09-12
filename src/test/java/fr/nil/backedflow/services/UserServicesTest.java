@@ -16,11 +16,13 @@ import fr.nil.backedflow.responses.UserStorageResponse;
 import fr.nil.backedflow.services.files.FileService;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -80,7 +82,13 @@ class UserServicesTest {
     private EntityManager entityManager;
 
     @Mock
+    private Logger logger;
+
+    @Mock
     private Environment env;
+
+    @Mock
+    private HttpServletRequest request;
 
     private User user;
     @BeforeEach
@@ -278,6 +286,37 @@ class UserServicesTest {
         verify(userRepository).deleteByMail(email);
     }
 
+    @Test
+    void deleteUserByEmailTestWithDebugOn() {
+        String email = "test@email.com";
+        User mockUser = mock(User.class);
+        Plan mockPlan = mock(Plan.class);
+        List<Folder> mockFolders = Arrays.asList(mock(Folder.class), mock(Folder.class));
+
+
+        when(userDetails.getUsername()).thenReturn("test@email.com");
+        when(userDetails.getPassword()).thenReturn("test");
+        when(userDetails.getAuthorities()).thenReturn(new ArrayList<>());
+        when(userDetails.isEnabled()).thenReturn(true);
+        when(userDetails.isAccountNonExpired()).thenReturn(true);
+        when(userDetails.isAccountNonLocked()).thenReturn(true);
+        when(userDetails.isCredentialsNonExpired()).thenReturn(true);
+        when(userRepository.findByMail(email)).thenReturn(Optional.of(user));
+
+        when(mockUser.getId()).thenReturn(UUID.randomUUID());
+        when(mockUser.getPlan()).thenReturn(mockPlan);
+        //when(folderRepository.findAllByFolderOwner(UUID.randomUUID())).thenReturn(Optional.of(mockFolders));
+        when(folderRepository.findAllByFolderOwner(any(UUID.class))).thenReturn(Optional.of(mockFolders));
+        when(logger.isDebugEnabled()).thenReturn(true);
+
+        when(folderRepository.findAllByFolderOwner(any(UUID.class))).thenReturn(Optional.of(mockFolders));
+        doNothing().when(userRepository).deleteByMail(any(String.class));
+
+        userService.deleteUserByEmail(email);
+
+        verify(entityManager).flush();
+        verify(userRepository).deleteByMail(email);
+    }
 
     @Test
     void getUserStorageInfoTest() {
@@ -331,23 +370,18 @@ class UserServicesTest {
 
 
     @Test
-    void testEquals() {
-        UserService obj1 = mock(UserService.class);
-        UserService obj2 = mock(UserService.class);
-        UserService obj3 = mock(UserService.class);
+    void testGetUserIDFromRequest() {
+        // Given
+        String authHeader = "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJ0ZXN0IiwiaWF0IjoxNjk0NDU2Mjk5LCJleHAiOjE3MjU5OTI4OTksImF1ZCI6Ind3dy5leGFtcGxlLmNvbSIsInN1YiI6Impyb2NrZXRAZXhhbXBsZS5jb20iLCJmaXJzdE5hbWUiOiJ0ZXN0IiwibGFzdE5hbWUiOiJ0ZXN0IiwidXNlckVtYWlsIjoidGVzdEB0ZXN0LmZyIiwidXNlclJvbGUiOiJVU0VSIn0.d7-hpeyl-6Gmwp0drohJFMjJJbhos0Zz4uY3uv64Mow";
+        UUID expectedUUID = UUID.randomUUID();
+        when(request.getHeader("Authorization")).thenReturn(authHeader);
+        when(jwtService.extractClaim(anyString(), any())).thenReturn(expectedUUID.toString());
 
-        // Reflexive: x.equals(x) should return true
-        assertTrue(obj1.equals(obj1));
+        // When
+        UUID actualUUID = userService.getUserIDFromRequest(request);
 
-
-        // Transitive: if x.equals(y) returns true and y.equals(z) returns true, then x.equals(z) should return true
-        assertTrue(obj2.equals(obj2));
-        assertTrue(obj3.equals(obj3));
-
-        // Not equal to null
-        assertFalse(obj1.equals(null));
-
-        // Add more conditions specific to your class properties and behavior...
+        // Then
+        assertEquals(expectedUUID, actualUUID);
     }
 
 }

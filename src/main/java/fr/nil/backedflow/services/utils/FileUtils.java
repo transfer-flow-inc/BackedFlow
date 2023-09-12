@@ -55,10 +55,6 @@ public class FileUtils {
         return archiveExtensions.contains(fileExtension.toLowerCase());
     }
 
-    public static long convertFileSizeBytesToGB(long bytes) {
-        return Math.round(bytes / Math.pow(1024, 3));
-    }
-
     public static Float convertSizeBytesToGB(long bytes) {
         double gb = bytes / Math.pow(1024, 3);
         DecimalFormat df = new DecimalFormat("#.000"); // Set your desired format here.

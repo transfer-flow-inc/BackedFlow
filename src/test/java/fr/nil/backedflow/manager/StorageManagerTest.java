@@ -1,6 +1,7 @@
 package fr.nil.backedflow.manager;
 
 import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.plan.Plan;
 import fr.nil.backedflow.entities.user.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +19,7 @@ import java.util.Comparator;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -121,6 +123,23 @@ class StorageManagerTest {
         long size = Files.size(userPath.resolve("file1.txt")) + Files.size(userPath.resolve("file2.txt"));
         float expectedSize = (float) size / (1024 * 1024 * 1024);
         assertEquals(expectedSize, storageManager.getFormattedUserStorageSize(user));
+    }
+
+    @Test
+    void testHasNotEnoughStorageSize() throws IOException {
+        // Given
+        User user = mock(User.class);
+        Plan plan = mock(Plan.class);
+        when(plan.getMaxUploadCapacity()).thenReturn(0); // 1 GB
+        when(user.getId()).thenReturn(uuid);
+        when(user.getPlan()).thenReturn(plan);
+        // When
+        Path userPath = tempDir.resolve("user_" + user.getId().toString());
+        Files.createDirectory(userPath);
+        Files.write(userPath.resolve("file1.txt"), new byte[1024 * 1024 * 1024]); // 1 GB file
+
+        // Then
+        assertFalse(storageManager.hasEnoughStorageSize(user));
     }
 
     @Test

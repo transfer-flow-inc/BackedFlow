@@ -176,6 +176,8 @@
 								<exclude>fr/nil/backedflow/responses/**</exclude>
 								<exclude>fr/nil/backedflow/jobs/**</exclude>
 								<exclude>fr/nil/backedflow/stats/**</exclude>
+								<exclude>fr/nil/backedflow/services/AuthenticationService**</exclude>
+								<exclude>fr/nil/backedflow/services/folder/**</exclude>
 
 							</excludes>
 						</configuration>
@@ -200,6 +202,8 @@
 								<exclude>fr/nil/backedflow/responses/**</exclude>
 								<exclude>fr/nil/backedflow/jobs/**</exclude>
 								<exclude>fr/nil/backedflow/stats/**</exclude>
+								<exclude>fr/nil/backedflow/services/AuthenticationService**</exclude>
+								<exclude>fr/nil/backedflow/services/folder/**</exclude>
 
 							</excludes>
 						</configuration>
@@ -235,6 +239,9 @@
 								<exclude>fr/nil/backedflow/responses/**</exclude>
 								<exclude>fr/nil/backedflow/jobs/**</exclude>
 								<exclude>fr/nil/backedflow/stats/**</exclude>
+								<exclude>fr/nil/backedflow/services/AuthenticationService**</exclude>
+								<exclude>fr/nil/backedflow/services/folder/**</exclude>
+
 							</excludes>
 						</configuration>
 					</execution>
