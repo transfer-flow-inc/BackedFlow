@@ -5,6 +5,8 @@ import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.entities.user.UserVerification;
+import fr.nil.backedflow.event.AccountCreationEvent;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.repositories.*;
@@ -14,6 +16,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,9 @@ public class UserService {
     private final FileService fileService;
     private final JWTService jwtService;
     private final StorageManager storageManager;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final UserVerificationService userVerificationService;
+
 
 
     public User createUser(User user) {
@@ -91,8 +97,17 @@ public class UserService {
             log.debug("mail will be updated from this request ");
             user.setMail(updateRequest.getMail());
             user.setIsAccountVerified(false);
-            // todo send Kafka message to mailer to resend mail confirmation
-                    }
+
+            UserVerification userVerification = userVerificationService.generateVerificationToken(user);
+
+            kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
+                    .userID(user.getId().toString())
+                    .userName(user.getFirstName() + " " + user.getLastName())
+                    .email(user.getMail())
+                    .validationToken(userVerification.getVerificationToken())
+                    .build());
+
+        }
 
         if (updateRequest.getPassword() != null) {
             log.debug("Password will be updated from this request");
