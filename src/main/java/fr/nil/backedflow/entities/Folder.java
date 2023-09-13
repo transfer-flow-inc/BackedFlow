@@ -1,5 +1,6 @@
 package fr.nil.backedflow.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -65,5 +66,6 @@ public class Folder {
     private List<FileEntity> fileEntityList = new ArrayList<>();
 
     @ManyToOne()
+    @JsonBackReference
     private User folderOwner;
 }

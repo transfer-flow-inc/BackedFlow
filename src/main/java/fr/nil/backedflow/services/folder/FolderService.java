@@ -158,6 +158,7 @@ public class FolderService {
                 .url(FolderUtils.generateRandomURL())
                 .build());
 
+        userService.addFolderToFolderList(user, folder);
 
         logger.debug("Sending notification mail to all recipients");
         kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()

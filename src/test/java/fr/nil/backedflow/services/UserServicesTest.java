@@ -384,4 +384,21 @@ class UserServicesTest {
         assertEquals(expectedUUID, actualUUID);
     }
 
+
+    @Test
+    void addFolderToFolderListTest() {
+        // Arrange
+        User user = new User();
+        user.setUserFolders(new ArrayList<>());
+        Folder folder = new Folder();
+
+        when(userRepository.save(user)).thenReturn(user);
+
+        // Act
+        User updatedUser = userService.addFolderToFolderList(user, folder);
+
+        // Assert
+        assertTrue(updatedUser.getUserFolders().contains(folder));
+        verify(userRepository, times(1)).save(user);
+    }
 }

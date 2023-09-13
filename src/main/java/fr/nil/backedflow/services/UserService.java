@@ -3,6 +3,7 @@ package fr.nil.backedflow.services;
 import fr.nil.backedflow.auth.requests.AuthenticationRequest;
 import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
+import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.manager.StorageManager;
@@ -137,6 +138,12 @@ public class UserService {
                 .build();
 
 
+    }
+
+
+    public User addFolderToFolderList(User user, Folder folder) {
+        user.getUserFolders().add(folder);
+        return userRepository.save(user);
     }
 
 }
