@@ -6,6 +6,8 @@ import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.plan.Plan;
 import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
+import fr.nil.backedflow.entities.user.UserVerification;
+import fr.nil.backedflow.event.AccountCreationEvent;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.repositories.FolderRepository;
@@ -24,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.springframework.core.env.Environment;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -80,6 +83,12 @@ class UserServicesTest {
 
     @Mock
     private EntityManager entityManager;
+
+    @Mock
+    private KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Mock
+    private UserVerificationService userVerificationService;
 
     @Mock
     private Logger logger;
@@ -183,11 +192,15 @@ class UserServicesTest {
     void testUpdateUserWhenUpdatingMail() {
         String mail = "test@mail.com";
         User user = new User();
+        user.setId(UUID.randomUUID());
         user.setPassword("oldPassword");
         UserUpdateRequest updateRequest = new UserUpdateRequest();
         updateRequest.setMail("newMail@mail.com");
         when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(kafkaTemplate.send(anyString(), any(AccountCreationEvent.class))).thenReturn(null);
+
+        when(userVerificationService.generateVerificationToken(any(User.class))).thenReturn(new UserVerification().builder().verificationToken("testoken").user(user).id(UUID.randomUUID()).build());
 
         // Mock the behavior of authenticationService.authenticate
         AuthenticationResponse mockResponse = AuthenticationResponse.builder().token("mockToken").build();
@@ -384,4 +397,21 @@ class UserServicesTest {
         assertEquals(expectedUUID, actualUUID);
     }
 
+
+    @Test
+    void addFolderToFolderListTest() {
+        // Arrange
+        User user = new User();
+        user.setUserFolders(new ArrayList<>());
+        Folder folder = new Folder();
+
+        when(userRepository.save(user)).thenReturn(user);
+
+        // Act
+        User updatedUser = userService.addFolderToFolderList(user, folder);
+
+        // Assert
+        assertTrue(updatedUser.getUserFolders().contains(folder));
+        verify(userRepository, times(1)).save(user);
+    }
 }

@@ -4,6 +4,7 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.auth.requests.UserUpdateRequest;
 import fr.nil.backedflow.auth.responses.AuthenticationResponse;
 import fr.nil.backedflow.entities.Folder;
+import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.entities.user.UserTicket;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.exceptions.UnauthorizedUserAccessException;
@@ -84,6 +85,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserStorageInfo(userID));
     }
 
+
+    @GetMapping
+    public ResponseEntity<User> getSelfData(Authentication authentication) {
+        return ResponseEntity.ok(userService.getUserByMail(authentication.getName()));
+    }
 
 }
 

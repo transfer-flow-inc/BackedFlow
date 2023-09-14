@@ -1,6 +1,7 @@
 package fr.nil.backedflow.entities.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.plan.Plan;
 import jakarta.persistence.*;
@@ -12,6 +13,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +46,13 @@ public class User implements UserDetails {
     private Boolean isAccountVerified;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    private List<Folder> userFolders;
+    @JsonManagedReference
+    @JoinTable(
+            name = "user_user_folders",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "folder_id")
+    )
+    private List<Folder> userFolders = new ArrayList<>();
 
     @OneToOne(cascade = CascadeType.ALL)
     private UserVerification userVerification;

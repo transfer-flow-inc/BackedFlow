@@ -16,8 +16,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -48,6 +50,11 @@ class FileServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private Logger logger;
+
+    @Mock
+    private Files files;
 
     @InjectMocks
     private FileService fileService;
@@ -95,6 +102,5 @@ class FileServiceTest {
         verify(fileRepository, times(1)).findAll();
         assertEquals(mockFileEntityList, returnedFileEntityList);
     }
-
 
 }

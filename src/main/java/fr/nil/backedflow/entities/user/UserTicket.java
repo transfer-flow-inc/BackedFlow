@@ -32,6 +32,6 @@ public class UserTicket {
     private String message;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    @JsonFormat(pattern = "dd/MM/yyyy hh:mm")
+    @JsonFormat(pattern = "MM/dd/yyyy hh:mm")
     private LocalDateTime sentAt;
 }
