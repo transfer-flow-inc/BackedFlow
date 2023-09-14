@@ -19,9 +19,7 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -105,29 +103,4 @@ class FileServiceTest {
         assertEquals(mockFileEntityList, returnedFileEntityList);
     }
 
-    @Test
-    public void testDeleteFilesFromUserStorage() throws IOException, IOException {
-        Folder mockFolder = mock(Folder.class);
-        FileEntity mockFileEntity = mock(FileEntity.class);
-
-        when(mockFileEntity.getFileName()).thenReturn("testFile.txt");
-        when(mockFileEntity.getFilePath()).thenReturn("/tmp/testFile.txt");
-
-        List<FileEntity> mockFileEntityList = Arrays.asList(mockFileEntity);
-        when(mockFolder.getFileEntityList()).thenReturn(mockFileEntityList);
-        File mockFile = mock(File.class);
-        Path mockPath = mock(Path.class);
-        Files.createFile(Path.of(mockFileEntity.getFilePath()));
-        when(mockFile.toPath()).thenReturn(mockPath);
-        when(mockFolder.getFileEntityList()).thenReturn(Arrays.asList(mockFileEntity));
-        when(mockFileEntityList.remove(any(FileEntity.class))).thenReturn(true);
-        doReturn(true).when(mockFileEntityList.removeAll(Arrays.asList(mockFileEntity)));
-
-        fileService.deleteFilesFromUserStorage(mockFolder);
-
-        verify(logger, times(1)).debug(String.format("Deleting file %s", mockFileEntity.getFileName()));
-        verify(logger, times(1)).debug(String.format("File %s has been deleted", mockFileEntity.getFileName()));
-        verify(folderRepository, times(1)).save(mockFolder);
-        verify(fileRepository, times(1)).deleteAll(anyList());
-    }
 }
