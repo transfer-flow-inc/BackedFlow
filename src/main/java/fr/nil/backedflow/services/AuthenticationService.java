@@ -11,6 +11,7 @@
     import fr.nil.backedflow.entities.user.User;
     import fr.nil.backedflow.entities.user.UserVerification;
     import fr.nil.backedflow.event.AccountCreationEvent;
+    import fr.nil.backedflow.exceptions.UnverifiedLoginException;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
     import fr.nil.backedflow.stats.MetricsEnum;
@@ -106,6 +107,8 @@ public class AuthenticationService {
         User user = userRepository.findByMail(request.getEmail())
                 .orElseThrow();
 
+        if (!user.getIsAccountVerified())
+            throw new UnverifiedLoginException();
 
         meterRegistry.counter(MetricsEnum.USER_LOGIN_COUNT.getMetricName()).increment();
         String jwtToken = jwtService.generateToken(generateExtraClaims(user, "spring_database"), user);
