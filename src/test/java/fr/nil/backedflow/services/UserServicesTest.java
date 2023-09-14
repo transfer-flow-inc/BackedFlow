@@ -195,7 +195,7 @@ class UserServicesTest {
         user.setId(UUID.randomUUID());
         user.setPassword("oldPassword");
         UserUpdateRequest updateRequest = new UserUpdateRequest();
-        updateRequest.setMail("newMail@mail.com");
+        updateRequest.setEmail("newMail@mail.com");
         when(userRepository.findByMail(mail)).thenReturn(Optional.of(user));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(kafkaTemplate.send(anyString(), any(AccountCreationEvent.class))).thenReturn(null);

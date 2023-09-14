@@ -77,6 +77,9 @@ public class UserVerificationService {
 
     public UserVerification generateVerificationToken(User user) {
         log.debug("Generating a new verification process for the user : " + user.getId());
+        if (userVerificationRepository.findUserVerificationByUserId(user.getId()).isPresent())
+            return userVerificationRepository.findUserVerificationByUserId(user.getId()).orElseThrow();
+
         UserVerification userVerification = UserVerification.builder()
                 .id(UUID.randomUUID())
                 .user(user)

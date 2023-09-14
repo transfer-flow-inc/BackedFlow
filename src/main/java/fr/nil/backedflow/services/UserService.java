@@ -74,13 +74,16 @@ public class UserService {
     public AuthenticationResponse updateUser(String mail, UserUpdateRequest updateRequest, String oldPassword) throws PasswordMismatchException {
         Optional<User> optionalUser = userRepository.findByMail(mail);
 
-        if (!optionalUser.isPresent()) {
+        if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException(mail);
         }
         User user = optionalUser.get();
 
-        if (oldPassword != null && !passwordEncoder.matches(oldPassword, user.getPassword()))
-            throw new PasswordMismatchException();
+        if (oldPassword.isEmpty())
+            throw new PasswordMismatchException("Old password is empty");
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword()))
+            throw new PasswordMismatchException("Old password does not match user password ");
 
 
         if (updateRequest.getFirstName() != null) {
@@ -92,10 +95,9 @@ public class UserService {
             log.debug("lastName will be updated from this request");
             user.setLastName(updateRequest.getLastName());
         }
-
-        if (updateRequest.getMail() != null) {
+        if (updateRequest.getEmail() != null) {
             log.debug("mail will be updated from this request ");
-            user.setMail(updateRequest.getMail());
+            user.setMail(updateRequest.getEmail());
             user.setIsAccountVerified(false);
 
             UserVerification userVerification = userVerificationService.generateVerificationToken(user);
@@ -103,21 +105,22 @@ public class UserService {
             kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
                     .userID(user.getId().toString())
                     .userName(user.getFirstName() + " " + user.getLastName())
-                    .email(user.getMail())
+                    .email(updateRequest.getEmail())
                     .validationToken(userVerification.getVerificationToken())
                     .build());
+            log.debug(String.format("User mail has been updated, a new verification process has been started %s", mail));
 
+            mail = updateRequest.getEmail();
         }
 
         if (updateRequest.getPassword() != null) {
             log.debug("Password will be updated from this request");
             user.setPassword(passwordEncoder.encode(updateRequest.getPassword()));
-                    }
+        }
 
         userRepository.save(user);
 
-
-        if (oldPassword != null && !passwordEncoder.matches(oldPassword, user.getPassword()))
+        if (!passwordEncoder.matches(oldPassword, user.getPassword()))
             return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(updateRequest.getPassword()).build());
 
         return authenticationService.authenticate(AuthenticationRequest.builder().email(mail).password(oldPassword).build());
