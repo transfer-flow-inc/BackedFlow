@@ -113,7 +113,7 @@ public class UserService {
             mail = updateRequest.getEmail();
         }
 
-        if (updateRequest.getPassword() != null) {
+        if (updateRequest.getPassword() != null && !updateRequest.getPassword().isEmpty()) {
             log.debug("Password will be updated from this request");
             user.setPassword(passwordEncoder.encode(updateRequest.getPassword()));
         }

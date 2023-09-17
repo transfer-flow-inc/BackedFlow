@@ -41,7 +41,7 @@ public class Folder {
     private int folderViews;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
-    @JsonFormat(pattern = "dd/MM/yyyy hh:mm")
+    @JsonFormat(pattern = "MM/dd/yyyy hh:mm")
     private LocalDateTime uploadedAt;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
