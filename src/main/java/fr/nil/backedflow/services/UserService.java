@@ -86,16 +86,16 @@ public class UserService {
             throw new PasswordMismatchException("Old password does not match user password ");
 
 
-        if (updateRequest.getFirstName() != null) {
+        if (updateRequest.getFirstName() != null && !updateRequest.getFirstName().isEmpty()) {
             log.debug("firstName will be updated from this request");
             user.setFirstName(updateRequest.getFirstName());
-                    }
+        }
 
-        if (updateRequest.getLastName() != null) {
+        if (updateRequest.getLastName() != null && !updateRequest.getLastName().isEmpty()) {
             log.debug("lastName will be updated from this request");
             user.setLastName(updateRequest.getLastName());
         }
-        if (updateRequest.getEmail() != null) {
+        if (updateRequest.getEmail() != null && !updateRequest.getEmail().isEmpty() && !updateRequest.getEmail().equals(mail)) {
             log.debug("mail will be updated from this request ");
             user.setMail(updateRequest.getEmail());
             user.setIsAccountVerified(false);
