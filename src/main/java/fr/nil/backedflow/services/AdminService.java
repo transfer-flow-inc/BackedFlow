@@ -1,7 +1,9 @@
 package fr.nil.backedflow.services;
 
+import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.entities.user.UserTicket;
+import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.repositories.UserTicketRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final UserTicketRepository userTicketRepository;
-
+    private final FolderRepository folderRepository;
 
     //add pagination to this 20 user per page
 
@@ -33,6 +35,14 @@ public class AdminService {
 
     }
 
+    public void deleteUserByID(UUID id) {
+        userRepository.deleteById(id);
+    }
+
+
+    public Page<Folder> getAllFolderFromUserID(UUID id, Pageable pageable) {
+        return folderRepository.findAllByFolderOwnerId(id, pageable);
+    }
 
     public Page<UserTicket> getAllTickets(Pageable pageable) {
         return userTicketRepository.findAll(pageable);

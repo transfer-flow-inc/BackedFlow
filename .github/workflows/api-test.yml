@@ -29,7 +29,9 @@ jobs:
           distribution: adopt
 
       - name: Use Node.js 18
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3.8.1
+        with:
+          node-version: '18'
 
       - name: Install newman
         run: |

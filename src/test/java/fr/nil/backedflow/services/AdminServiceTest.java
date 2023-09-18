@@ -2,6 +2,7 @@ package fr.nil.backedflow.services;
 
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.entities.user.UserTicket;
+import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.repositories.UserTicketRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,9 @@ class AdminServiceTest {
 
     @Mock
     private UserTicketRepository userTicketRepository;
+
+    @Mock
+    private FolderRepository folderRepository;
 
     @InjectMocks
     private AdminService adminService;
@@ -71,6 +75,7 @@ class AdminServiceTest {
 
         verify(userTicketRepository, times(1)).findAll(pageable);
     }
+
 }
 
 

@@ -70,7 +70,7 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .isAccountVerified(false)
-                .avatar("logo_dark.png")
+                .avatar("https://api.transfer-flow.studio/assets/logo.png")
                 .build();
 
         if (env.acceptsProfiles(Profiles.of("apitesting")))
