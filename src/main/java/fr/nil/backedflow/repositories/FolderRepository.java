@@ -1,6 +1,8 @@
 package fr.nil.backedflow.repositories;
 
 import fr.nil.backedflow.entities.Folder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,5 +26,7 @@ public interface FolderRepository extends JpaRepository<Folder, UUID> {
         void deleteAllByFolderOwnerMail(String email);
 
         List<Folder> findByExpiresAtBefore(LocalDateTime dateTime);
+
+        Page<Folder> findAllByFolderOwnerId(UUID id, Pageable pageable);
 
 }

@@ -78,6 +78,7 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(authorizedRequests -> {
                     authorizedRequests
+                            .requestMatchers(mvc.pattern("/assets/**")).permitAll()
                             .requestMatchers(mvc.pattern("/api/v1/auth/**"), mvc.pattern("/api/v1/folder/download/**"), mvc.pattern("/api/v1/folder/url/**"), mvc.pattern("/api/v1/verify/**")).permitAll()
                             .requestMatchers(mvc.pattern("/actuator/**")).permitAll()
                             .requestMatchers(mvc.pattern("/v3/api-docs/**"), mvc.pattern("/swagger-ui/**")).permitAll();
