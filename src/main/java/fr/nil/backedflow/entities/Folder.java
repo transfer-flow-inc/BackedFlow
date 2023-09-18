@@ -2,6 +2,7 @@ package fr.nil.backedflow.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import fr.nil.backedflow.entities.user.User;
@@ -68,4 +69,10 @@ public class Folder {
     @ManyToOne()
     @JsonBackReference
     private User folderOwner;
+
+    @JsonProperty("folderOwnerID")
+    public UUID getFolderOwnerId() {
+        return folderOwner != null ? folderOwner.getId() : null;
+    }
+
 }
