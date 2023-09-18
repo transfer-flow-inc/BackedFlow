@@ -22,13 +22,19 @@ public class AdminController {
 
     private final AdminService adminService;
 
+
     @GetMapping("/users")
     public ResponseEntity<Page<User>> getAllUsers(Pageable pageable) {
         Page<User> users = adminService.getAllUsers(pageable);
         return ResponseEntity.ok(users);
     }
 
-  
+
+    @GetMapping("folder/{id}")
+    public ResponseEntity<Folder> getFolderByID(@PathVariable("id") UUID id) {
+        return ResponseEntity.ok(adminService.getFolderByID(id));
+    }
+
     @GetMapping("/user/{id}")
     public ResponseEntity<User> getUserByID(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(adminService.getUserByID(id));

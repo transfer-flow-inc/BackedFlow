@@ -44,6 +44,11 @@ public class AdminService {
         return folderRepository.findAllByFolderOwnerId(id, pageable);
     }
 
+    public Folder getFolderByID(UUID id) {
+        return folderRepository.findById(id).orElseThrow();
+    }
+
+
     public Page<UserTicket> getAllTickets(Pageable pageable) {
         return userTicketRepository.findAll(pageable);
     }
