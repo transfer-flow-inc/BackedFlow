@@ -48,6 +48,7 @@ public class AdminService {
         return folderRepository.findById(id).orElseThrow();
     }
 
+
     public Page<UserTicket> getAllTickets(Pageable pageable) {
         return userTicketRepository.findAll(pageable);
     }
