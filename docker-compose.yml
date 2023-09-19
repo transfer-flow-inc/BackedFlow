@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  fuel_db:
+  file_db:
     image: mysql:5.7
     container_name: transfer_flow_db
     environment:
