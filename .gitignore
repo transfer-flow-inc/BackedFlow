@@ -36,3 +36,9 @@ build/
 /config/
 /data/
 /storage/
+/deployment/.env
+/deployment/.terraform/
+/deployment/terraform.tfstate
+/deployment/.terraform.lock.hcl
+/deployment/.terraform.tfstate.lock.info
+/deployment/terraform.tfstate.backup
