@@ -6,6 +6,7 @@ import fr.nil.backedflow.entities.user.UserTicket;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.repositories.UserTicketRepository;
+import fr.nil.backedflow.services.folder.FolderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -23,6 +24,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final UserTicketRepository userTicketRepository;
     private final FolderRepository folderRepository;
+    private final FolderService folderService;
 
     //add pagination to this 20 user per page
 
@@ -40,7 +42,7 @@ public class AdminService {
     }
 
     public void deleteFolderByID(UUID id) {
-        folderRepository.deleteById(id);
+        folderService.deleteFolder(folderRepository.findById(id).orElseThrow());
     }
 
     public Page<Folder> getAllFolderFromUserID(UUID id, Pageable pageable) {
