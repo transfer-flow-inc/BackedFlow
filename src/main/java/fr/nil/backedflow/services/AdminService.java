@@ -39,6 +39,9 @@ public class AdminService {
         userRepository.deleteById(id);
     }
 
+    public void deleteFolderByID(UUID id) {
+        folderRepository.deleteById(id);
+    }
 
     public Page<Folder> getAllFolderFromUserID(UUID id, Pageable pageable) {
         return folderRepository.findAllByFolderOwnerId(id, pageable);

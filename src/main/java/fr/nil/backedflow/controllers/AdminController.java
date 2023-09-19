@@ -51,6 +51,11 @@ public class AdminController {
         return ResponseEntity.ok(folders);
     }
 
+    @DeleteMapping("/folder/{id}")
+    public void deleteFolderByID(@PathVariable("id") UUID id) {
+        adminService.deleteFolderByID(id);
+    }
+
     @GetMapping("/tickets")
     public ResponseEntity<Page<UserTicket>> getAllTickets(Pageable pageable) {
         Page<UserTicket> tickets = adminService.getAllTickets(pageable);
