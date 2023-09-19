@@ -71,7 +71,7 @@ public class Folder {
     private User folderOwner;
 
     @JsonProperty("folderOwnerID")
-    public UUID getFolderOwnerId() {
+    public UUID getFolderOwnerID() {
         return folderOwner != null ? folderOwner.getId() : null;
     }
 
