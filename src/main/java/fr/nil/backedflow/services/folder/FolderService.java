@@ -12,6 +12,7 @@ import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.responses.FolderResponse;
 import fr.nil.backedflow.services.JWTService;
+import fr.nil.backedflow.services.MeterService;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
@@ -53,7 +54,7 @@ public class FolderService {
     private final EntityManager entityManager;
     private final Logger logger = LoggerFactory.getLogger(FolderService.class);
     private final UserService userService;
-
+    private final MeterService meterService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
 
@@ -85,7 +86,7 @@ public class FolderService {
 
 
             fileEncryptorDecryptor.encryptFile(tempPath.toFile(), finalPath.toFile());
-
+            meterService.updateFileSizeGauge(finalPath.toFile().length());
             // Delete the temporary file
             Files.delete(tempPath);
 
@@ -94,7 +95,6 @@ public class FolderService {
             // Handle exceptions appropriately,
             logger.error(String.format("An error occurred during the file upload (Error message : %s ).", e.getMessage()));
             logger.debug(Arrays.toString(e.getStackTrace()));
-            e.printStackTrace();
             throw new FileUploadException();
 
         }
