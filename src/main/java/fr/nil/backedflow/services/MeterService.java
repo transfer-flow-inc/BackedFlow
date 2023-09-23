@@ -22,7 +22,10 @@ public class MeterService {
 
 
     private final AtomicLong lastUploadedFileSize = new AtomicLong(0);
-    private Gauge fileSizeGauge;
+    private final AtomicLong lastDownloadedFileSize = new AtomicLong(0);
+
+    private Gauge uploadFileSizeGauge;
+    private Gauge downloadFileSizeGauge;
     private Counter springLoginCounter;
     private Counter googleSSOLoginCounter;
     private Counter userRegistrationCounter;
@@ -51,13 +54,43 @@ public class MeterService {
                 .description("Number of file downloads")
                 .register(meterRegistry);
 
-        fileSizeGauge = Gauge.builder(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(), lastUploadedFileSize, AtomicLong::get)
+        uploadFileSizeGauge = Gauge.builder(MetricsEnum.FILE_TRANSFER_UPLOAD_SIZE.getMetricName(), lastUploadedFileSize, AtomicLong::get)
                 .description("Size of the last uploaded file")
+                .register(meterRegistry);
+
+        downloadFileSizeGauge = Gauge.builder(MetricsEnum.FILE_TRANSFER_DOWNLOAD_SIZE.getMetricName(), lastDownloadedFileSize, AtomicLong::get)
+                .description("Size of the last downloaded file")
                 .register(meterRegistry);
 
     }
 
-    public void updateFileSizeGauge(long size) {
+    public void updateUploadFileSizeGauge(long size) {
         lastUploadedFileSize.set(size);
     }
+
+    public void updateDownloadFileSizeGauge(long size) {
+        lastDownloadedFileSize.set(size);
+    }
+
+    public void incrementSpringLoginCounter() {
+        springLoginCounter.increment();
+    }
+
+    public void incrementGoogleSSOLoginCounter() {
+        googleSSOLoginCounter.increment();
+    }
+
+    public void incrementUserRegistrationCounter() {
+        userRegistrationCounter.increment();
+    }
+
+    public void incrementFileUploadCounter() {
+        fileUploadCounter.increment();
+    }
+
+    public void incrementFileDownloadCounter() {
+        fileDownloadCounter.increment();
+    }
+
+
 }

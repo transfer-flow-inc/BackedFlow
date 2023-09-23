@@ -5,9 +5,9 @@ import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.exceptions.InvalidTokenException;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
+import fr.nil.backedflow.services.MeterService;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
-import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -36,7 +36,7 @@ public class FolderController {
     private final FolderRepository folderRepository;
     private final FileService fileService;
     private final FolderService folderService;
-    private final MeterRegistry meterRegistry;
+    private final MeterService meterService;
 
     @GetMapping("/{id}")
     public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id) {
@@ -85,7 +85,7 @@ public class FolderController {
             throw new InvalidTokenException();
 
         File zipFile = fileService.getZippedFiles(folder.getFileEntityList());
-
+        meterService.updateDownloadFileSizeGauge(zipFile.length());
 
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
@@ -99,7 +99,7 @@ public class FolderController {
                 }
                 fileInputStream.close();
             };
-
+            meterService.incrementFileDownloadCounter();
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)

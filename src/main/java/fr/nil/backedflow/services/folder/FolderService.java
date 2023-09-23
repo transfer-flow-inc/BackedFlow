@@ -86,7 +86,8 @@ public class FolderService {
 
 
             fileEncryptorDecryptor.encryptFile(tempPath.toFile(), finalPath.toFile());
-            meterService.updateFileSizeGauge(finalPath.toFile().length());
+            meterService.updateUploadFileSizeGauge(finalPath.toFile().length());
+            meterService.incrementFileUploadCounter();
             // Delete the temporary file
             Files.delete(tempPath);
 

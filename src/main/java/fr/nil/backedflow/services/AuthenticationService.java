@@ -14,7 +14,6 @@
     import fr.nil.backedflow.exceptions.UnverifiedLoginException;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
-    import fr.nil.backedflow.stats.MetricsEnum;
     import io.micrometer.core.instrument.MeterRegistry;
     import lombok.RequiredArgsConstructor;
     import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,7 @@ public class AuthenticationService {
     private final UserVerificationService userVerificationService;
     private final PlanRepository planRepository;
     private final MeterRegistry meterRegistry;
-
+        private final MeterService meterService;
 
         private final KafkaTemplate<String, Object> kafkaTemplate;
 
@@ -79,7 +78,7 @@ public class AuthenticationService {
         user = userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(generateExtraClaims(user, "spring_database"), user);
-        meterRegistry.counter(MetricsEnum.USER_CREATION_COUNT.getMetricName()).increment();
+        meterService.incrementUserRegistrationCounter();
         UserVerification userVerification = userVerificationService.generateVerificationToken(user);
 
         kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
@@ -110,7 +109,7 @@ public class AuthenticationService {
         if (!user.getIsAccountVerified())
             throw new UnverifiedLoginException();
 
-        meterRegistry.counter(MetricsEnum.USER_LOGIN_COUNT.getMetricName()).increment();
+        meterService.incrementSpringLoginCounter();
         String jwtToken = jwtService.generateToken(generateExtraClaims(user, "spring_database"), user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
@@ -152,7 +151,7 @@ public class AuthenticationService {
         else
             userRepository.updateUser(user.getFirstName(), user.getLastName(), user.getMail(), user.getPassword(), userRepository.findByMail(user.getMail()).get().getId(), user.getAvatar());
 
-        meterRegistry.counter(MetricsEnum.USER_SSO_LOGIN_COUNT.getMetricName()).increment();
+        meterService.incrementGoogleSSOLoginCounter();
         String jwtToken = jwtService.generateToken(generateExtraClaims(user, "google_sso"), user);
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
