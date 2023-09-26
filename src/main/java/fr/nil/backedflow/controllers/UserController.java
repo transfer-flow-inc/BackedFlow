@@ -85,10 +85,6 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserStorageInfo(userID));
     }
 
-    @GetMapping("/{userID}/storage/percentage")
-    public ResponseEntity<Float> getUserStoragePercentage(@PathVariable(value = "userID") String userID, HttpServletRequest request) {
-        return ResponseEntity.ok(userService.getUserStorageUsagePercentage(userID));
-    }
 
     @GetMapping
     public ResponseEntity<User> getSelfData(Authentication authentication) {

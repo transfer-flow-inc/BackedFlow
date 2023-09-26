@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserStorageResponse {
 
-    private Float maxStorage;
-    private Float usedStorage;
+    private long maxStorage;
+    private long usedStorage;
 
 }
