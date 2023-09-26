@@ -151,8 +151,8 @@ public class UserService {
         User user = getUserById(UUID.fromString(userID));
 
         return UserStorageResponse.builder()
-                .usedStorage(storageManager.getFormattedUserStorageSize(user))
-                .maxStorage(Float.valueOf(user.getPlan().getMaxUploadCapacity()))
+                .usedStorage(storageManager.checkUserStorageSize(user))
+                .maxStorage(user.getPlan().getMaxUploadCapacity().longValue() * 1073741824)
                 .build();
 
 

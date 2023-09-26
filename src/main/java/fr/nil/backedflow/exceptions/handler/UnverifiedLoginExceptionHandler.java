@@ -16,7 +16,7 @@ public class UnverifiedLoginExceptionHandler {
 
     @ResponseBody
     @ExceptionHandler(UnverifiedLoginException.class)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ResponseStatus(HttpStatus.LOCKED)
     public String unverifiedLoginException(UnverifiedLoginException e) {
         return e.getMessage();
     }
