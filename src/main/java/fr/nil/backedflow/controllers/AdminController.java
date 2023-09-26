@@ -62,4 +62,9 @@ public class AdminController {
         return ResponseEntity.ok(tickets);
     }
 
+    @GetMapping("/ticket/{id}")
+    public ResponseEntity<UserTicket> getTicketByID(@PathVariable("id") int id) {
+        return ResponseEntity.ok(adminService.getTicketByID(id));
+    }
+
 }

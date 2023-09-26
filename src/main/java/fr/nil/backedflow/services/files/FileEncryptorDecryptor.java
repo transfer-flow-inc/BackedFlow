@@ -11,6 +11,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 
 @Component
@@ -58,6 +59,37 @@ public class FileEncryptorDecryptor {
             // Handle exceptions appropriately
             logger.error(String.format("An error occurred during the file upload, Error message : %s", e.getMessage()));
             logger.debug(Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+
+    public File getDecryptedFile(File encryptedFile) {
+        try {
+            // Create a temporary file to store the decrypted content
+            File decryptedFile = File.createTempFile("decrypted", ".tmp");
+
+            try (
+                    FileInputStream fileInputStream = new FileInputStream(encryptedFile);
+                    FileOutputStream outputStream = new FileOutputStream(decryptedFile)
+            ) {
+                byte[] encryptedContent = StreamUtils.copyToByteArray(fileInputStream);
+
+                SecretKeySpec secretKeySpec = new SecretKeySpec(aesSecretKey.getBytes(), ENCRYPTION_ALGORITHM);
+                Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
+                cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+                byte[] decryptedContent = cipher.doFinal(encryptedContent);
+                outputStream.write(decryptedContent);
+            } catch (Exception e) {
+                // Handle exceptions appropriately
+                logger.error(String.format("An error occurred during the file decryption, Error message : %s", e.getMessage()));
+                logger.debug(Arrays.toString(e.getStackTrace()));
+            }
+
+            return decryptedFile;
+        } catch (IOException e) {
+            logger.error(String.format("An error occurred while creating the temporary file, Error message : %s", e.getMessage()));
+            logger.debug(Arrays.toString(e.getStackTrace()));
+            return null;
         }
     }
 

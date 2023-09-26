@@ -115,23 +115,6 @@ public class FolderService {
         return ResponseEntity.ok(requestedFolder);
     }
 
-    public Folder addFolderToDatabase(User user, String folderURL) {
-        Folder folder = Folder.builder()
-                .id(UUID.randomUUID())
-                .folderName("Default")
-                .folderOwner(user)
-                .folderViews(0)
-                .url(folderURL)
-                .accessKey(AccessKeyGenerator.generateAccessKey(32))
-                .uploadedAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(7))
-                .isPrivate(false)
-                .isShared(true)
-                .build();
-        folder.setFileEntityList(new ArrayList<>());
-        return folderRepository.save(folder);
-    }
-
 
     public Folder createEmptyFolder(FolderCreationRequest creationRequest, HttpServletRequest request) {
 
@@ -175,13 +158,6 @@ public class FolderService {
         return folder;
     }
 
-    public Folder addFilesToFolder(Folder folder, List<FileEntity> files) {
-        folder.getFileEntityList().addAll(files);
-        folder.setFileCount(folder.getFileEntityList().size());
-        folder.setFolderSize(folder.getFileEntityList().stream().mapToLong(FileEntity::getFileSize).sum());
-        return folderRepository.save(folder);
-    }
-
     public Folder addFileToFolder(Folder folder, FileEntity file) {
         folder.getFileEntityList().add(file);
         folder.setFileCount(folder.getFileEntityList().size());
@@ -214,6 +190,7 @@ public class FolderService {
 
         fileService.deleteFilesFromUserStorage(folder);
         folderRepository.delete(folder);
+        entityManager.flush();
     }
 
     public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {

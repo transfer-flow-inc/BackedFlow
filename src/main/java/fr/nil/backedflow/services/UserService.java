@@ -158,6 +158,15 @@ public class UserService {
 
     }
 
+    public float getUserStorageUsagePercentage(String userID) {
+        User user = getUserById(UUID.fromString(userID));
+
+        float usedStorage = storageManager.getFormattedUserStorageSize(user);
+        float maxStorage = user.getPlan().getMaxUploadCapacity();
+
+        return (usedStorage / maxStorage) * 100; // Calculate the percentage
+    }
+
 
     public User addFolderToFolderList(User user, Folder folder) {
         user.getUserFolders().add(folder);
