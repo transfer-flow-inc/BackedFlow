@@ -68,8 +68,8 @@ public class FolderController {
 
 
     @GetMapping("/url/{folderURL}")
-    public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
-        return folderService.handleGetFolderURLRequest(folderURL, request);
+    public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL) {
+        return folderService.handleGetFolderURLRequest(folderURL);
 
     }
     @PostMapping("/")
