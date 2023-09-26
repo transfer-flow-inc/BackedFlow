@@ -1,30 +1,40 @@
 package fr.nil.backedflow.controllers;
 
+import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.exceptions.FolderNotFoundException;
 import fr.nil.backedflow.exceptions.InvalidTokenException;
 import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.MeterService;
+import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import net.lingala.zip4j.io.outputstream.ZipOutputStream;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 @RestController
@@ -37,6 +47,7 @@ public class FolderController {
     private final FileService fileService;
     private final FolderService folderService;
     private final MeterService meterService;
+    private final FileEncryptorDecryptor fileEncryptorDecryptor;
 
     @GetMapping("/{id}")
     public ResponseEntity<Folder> getFolderFromID(@PathVariable(value = "id") String id) {
@@ -57,8 +68,8 @@ public class FolderController {
 
 
     @GetMapping("/url/{folderURL}")
-    public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL, HttpServletRequest request) {
-        return folderService.handleGetFolderURLRequest(folderURL, request);
+    public ResponseEntity<Folder> getFolderFromURL(@PathVariable(value = "folderURL") String folderURL) {
+        return folderService.handleGetFolderURLRequest(folderURL);
 
     }
     @PostMapping("/")
@@ -68,13 +79,9 @@ public class FolderController {
 
     }
 
-        // Continue with response creation...
-
-    // Define a method to download files
-    @SneakyThrows
     @GetMapping("/download/{folderURL}")
-    public ResponseEntity<StreamingResponseBody> downloadFiles(@PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) {
-
+    public void downloadFilesAsync(HttpServletResponse response, @PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException {
+        // Your existing code here...
         if (accessKey.isEmpty())
             throw new InvalidTokenException();
         if (!folderRepository.existsByUrl(folderURL))
@@ -84,34 +91,43 @@ public class FolderController {
         if (!accessKey.equals(folder.getAccessKey()))
             throw new InvalidTokenException();
 
-        File zipFile = fileService.getZippedFiles(folder.getFileEntityList());
-        meterService.updateDownloadFileSizeGauge(zipFile.length());
+        // Set the headers
+        response.setContentType("application/zip");
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"files.zip\"");
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=files.zip");
-        InputStream fileInputStream = Files.newInputStream(zipFile.toPath());
-        try {
-            StreamingResponseBody stream = outputStream -> {
-                int bytesRead;
-                byte[] buffer = new byte[1024];
-                while ((bytesRead = fileInputStream.read(buffer, 0, 1024)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-                fileInputStream.close();
-            };
-            meterService.incrementFileDownloadCounter();
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(stream);
+        ExecutorService executorService = Executors.newFixedThreadPool(16); // Create a thread pool
+        List<Future<File>> futures = new ArrayList<>();
 
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
+        for (FileEntity fileEntity : folder.getFileEntityList()) {
+            File originalFile = new File(fileEntity.getFilePath());
+            Future<File> future = executorService.submit(() -> fileEncryptorDecryptor.getDecryptedFile(originalFile)); // Decrypt files concurrently
+            futures.add(future);
         }
-        return ResponseEntity.internalServerError().build();
-    }
 
+        try (ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream())) {
+            for (int i = 0; i < folder.getFileEntityList().size(); i++) {
+                FileEntity fileEntity = folder.getFileEntityList().get(i);
+                File decryptedFile = futures.get(i).get(); // Wait for the decryption to finish
+
+                ZipParameters zipParameters = new ZipParameters();
+                zipParameters.setFileNameInZip(fileEntity.getFileName());
+                zipParameters.setCompressionMethod(CompressionMethod.DEFLATE);
+
+                // Add new zip entry and copy the file into the zip output stream
+                try (FileInputStream fis = new FileInputStream(decryptedFile)) {
+                    zipOut.putNextEntry(zipParameters);
+                    IOUtils.copy(fis, zipOut);
+                    zipOut.closeEntry();
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.error(e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        } finally {
+            executorService.shutdown(); // Don't forget to shut down the executor
+        }
+    }
 
 
     @Profile("testing")

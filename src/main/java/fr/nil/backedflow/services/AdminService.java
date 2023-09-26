@@ -58,4 +58,9 @@ public class AdminService {
         return userTicketRepository.findAll(pageable);
     }
 
+    public UserTicket getTicketByID(int id) {
+        return userTicketRepository.findById(id).orElseThrow();
+    }
+
+
 }

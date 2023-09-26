@@ -18,7 +18,6 @@ import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FolderUtils;
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -51,7 +50,6 @@ public class FolderService {
     private final FileService fileService;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
-    private final EntityManager entityManager;
     private final Logger logger = LoggerFactory.getLogger(FolderService.class);
     private final UserService userService;
     private final MeterService meterService;
@@ -104,7 +102,7 @@ public class FolderService {
     }
 
     @SneakyThrows
-    public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL, HttpServletRequest request) {
+    public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL) {
 
         if (folderRepository.getFolderByUrl(folderURL).isEmpty())
             throw new FolderNotFoundException("The requested folder cannot be found by URL");
@@ -113,23 +111,6 @@ public class FolderService {
         requestedFolder.setAccessKey(null);
 
         return ResponseEntity.ok(requestedFolder);
-    }
-
-    public Folder addFolderToDatabase(User user, String folderURL) {
-        Folder folder = Folder.builder()
-                .id(UUID.randomUUID())
-                .folderName("Default")
-                .folderOwner(user)
-                .folderViews(0)
-                .url(folderURL)
-                .accessKey(AccessKeyGenerator.generateAccessKey(32))
-                .uploadedAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusDays(7))
-                .isPrivate(false)
-                .isShared(true)
-                .build();
-        folder.setFileEntityList(new ArrayList<>());
-        return folderRepository.save(folder);
     }
 
 
@@ -175,13 +156,6 @@ public class FolderService {
         return folder;
     }
 
-    public Folder addFilesToFolder(Folder folder, List<FileEntity> files) {
-        folder.getFileEntityList().addAll(files);
-        folder.setFileCount(folder.getFileEntityList().size());
-        folder.setFolderSize(folder.getFileEntityList().stream().mapToLong(FileEntity::getFileSize).sum());
-        return folderRepository.save(folder);
-    }
-
     public Folder addFileToFolder(Folder folder, FileEntity file) {
         folder.getFileEntityList().add(file);
         folder.setFileCount(folder.getFileEntityList().size());
@@ -211,7 +185,6 @@ public class FolderService {
 
         user.getUserFolders().remove(folder);
         userRepository.save(user);
-
         fileService.deleteFilesFromUserStorage(folder);
         folderRepository.delete(folder);
     }

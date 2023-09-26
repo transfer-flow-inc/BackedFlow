@@ -1000,7 +1000,7 @@
 									"});",
 									"",
 									"pm.test(\"Response has content-type header of mime/application-octet\", function () {",
-									"pm.expect(pm.response.headers.get('content-type')).to.include('application/octet-stream');",
+									"pm.expect(pm.response.headers.get('content-type')).to.include('application/zip');",
 									"});"
 								],
 								"type": "text/javascript"
