@@ -187,10 +187,8 @@ public class FolderService {
 
         user.getUserFolders().remove(folder);
         userRepository.save(user);
-
         fileService.deleteFilesFromUserStorage(folder);
         folderRepository.delete(folder);
-        entityManager.flush();
     }
 
     public ResponseEntity<List<Folder>> getAllFolderByUserID(String userID, HttpServletRequest request) {
