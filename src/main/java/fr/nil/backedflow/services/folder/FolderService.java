@@ -18,7 +18,6 @@ import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
 import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.utils.AccessKeyGenerator;
 import fr.nil.backedflow.services.utils.FolderUtils;
-import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -51,7 +50,6 @@ public class FolderService {
     private final FileService fileService;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
-    private final EntityManager entityManager;
     private final Logger logger = LoggerFactory.getLogger(FolderService.class);
     private final UserService userService;
     private final MeterService meterService;
@@ -104,7 +102,7 @@ public class FolderService {
     }
 
     @SneakyThrows
-    public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL, HttpServletRequest request) {
+    public ResponseEntity<Folder> handleGetFolderURLRequest(String folderURL) {
 
         if (folderRepository.getFolderByUrl(folderURL).isEmpty())
             throw new FolderNotFoundException("The requested folder cannot be found by URL");
