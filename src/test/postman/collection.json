@@ -1,1166 +1,1167 @@
 {
-	"info": {
-		"_postman_id": "f32d7229-9e56-49b3-a619-86ddee57fadc",
-		"name": "TransferFlow API",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "24752067",
-		"_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&creator=24752067&source=collection_link"
-	},
-	"item": [
-		{
-			"name": "User",
-			"item": [
-				{
-					"name": "Delete User",
-					"item": [
-						{
-							"name": "Register a temp User into the Database",
-							"event": [
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"var email = \"testtmpuser\" + Math.floor(Math.random() * 1500) + \"@example.com\";",
-											"var password = \"password123\";",
-											"var firstName = \"John\";",
-											"var lastName = \"Doe\";",
-											"",
-											"    pm.environment.set(\"tempEmail\", email);",
-											"",
-											"    pm.environment.set(\"tempPassword\", password);",
-											"    pm.environment.set(\"firstName\", firstName);",
-											"    pm.environment.set(\"lastName\", lastName);"
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"",
-											"    pm.test(\"Response status code is 200\", function () {",
-											"        pm.expect(pm.response.code).to.equal(200);",
-											"    });",
-											"",
-											"    pm.test(\"Response contains a token\", function () {",
-											"        pm.expect(pm.response.json()).to.have.property('token').that.is.a('string');",
-											"    });",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"firstName\": \"Nilq\",\n    \"lastName\": \"MALHOMMEq\",\n    \"email\": \"{{tempEmail}}\",\n    \"password\": \"{{tempPassword}}\"\n\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/api/v1/auth/register",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"api",
-										"v1",
-										"auth",
-										"register"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Request  temp JWT token from the backend Copy",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Response status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response contains a token\", function () {",
-											"    pm.expect(pm.response.json()).to.have.property('token');",
-											"        pm.environment.set(\"tempAuthToken\", pm.response.json().token);",
-											"",
-											"});",
-											"",
-											"",
-											""
-										],
-										"type": "text/javascript"
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"email\": \"{{tempEmail}}\",\n    \"password\": \"{{tempPassword}}\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "{{baseURL}}/api/v1/auth/authenticate",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"api",
-										"v1",
-										"auth",
-										"authenticate"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete a user",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Response status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"auth": {
-									"type": "bearer",
-									"bearer": [
-										{
-											"key": "token",
-											"value": "{{tempAuthToken}}",
-											"type": "string"
-										}
-									]
-								},
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{baseURL}}/api/v1/user/{{tempEmail}}",
-									"host": [
-										"{{baseURL}}"
-									],
-									"path": [
-										"api",
-										"v1",
-										"user",
-										"{{tempEmail}}"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Register a new User into the Database",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"    pm.test(\"Response status code is 200\", function () {",
-									"        pm.expect(pm.response.code).to.equal(200);",
-									"    });",
-									"",
-									"    pm.test(\"Response contains a token\", function () {",
-									"        pm.expect(pm.response.json()).to.have.property('token').that.is.a('string');",
-									"    });",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"var email = \"test\" + Math.floor(Math.random() * 10000) + \"@example.com\";",
-									"var password = \"password123\";",
-									"var firstName = \"John\";",
-									"var lastName = \"Doe\";",
-									"",
-									"    pm.environment.set(\"email\", email);",
-									"    pm.environment.set(\"password\", password);",
-									"    pm.environment.set(\"firstName\", firstName);",
-									"    pm.environment.set(\"lastName\", lastName);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"firstName\": \"Nilq\",\n    \"lastName\": \"MALHOMMEq\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/auth/register",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"auth",
-								"register"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Request  JWT token from the backend",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains a token\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('token');",
-									"        pm.environment.set(\"authToken\", pm.response.json().token);",
-									"",
-									"});",
-									"",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/auth/authenticate",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"auth",
-								"authenticate"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Edit User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains a token\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('token');",
-									"        pm.environment.set(\"authToken\", pm.response.json().token);",
-									"",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\n    \"firstName\": \"test\",\n    \"lastName\": \"test\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/user/{{email}}?oldPassword={{password}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"user",
-								"{{email}}"
-							],
-							"query": [
-								{
-									"key": "oldPassword",
-									"value": "{{password}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User Data from auth",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Check if the response code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// Store the id in the environment variable",
-									"var responseBody = pm.response.json();",
-									"var userId = responseBody.id;",
-									"pm.environment.set(\"userID\", userId);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/user",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"user"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login using Google SSO",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains a token\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('token');",
-									"        //pm.environment.set(\"authToken\", pm.response.json().token);",
-									"",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{   \n    \"sub\":\"117151916294514197463\",\n    \"email\":\"thibaultbruhatpro@gmail.com\",\n    \"name\":\"Thibault Bruhat\",\n    \"azp\": \"979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com\",\n    \"aud\": \"979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com\",\n    \"jti\": \"545aff9cf6ba429a5c254e8ca254f02d7b6d3969\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/auth/google",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"auth",
-								"google"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get User Storage Info",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Test to check if the response has the correct content type",
-									"pm.test(\"Response has the correct content type\", function () {",
-									"    pm.response.to.have.header('Content-Type', 'application/json');",
-									"});",
-									"",
-									"",
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"",
-									"pm.test(\"Response has the correct content type\", function () {",
-									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
-									"});",
-									"",
-									"",
-									"pm.test(\"Max storage is a non-negative integer\", function () {",
-									"    const responseData = pm.response.json();",
-									"",
-									"    pm.expect(responseData.maxStorage).to.be.a('number');",
-									"    pm.expect(responseData.maxStorage).to.be.at.least(0);",
-									"});",
-									"",
-									"",
-									"pm.test(\"Used storage is a non-negative integer\", function () {",
-									"    const responseData = pm.response.json();",
-									"",
-									"    pm.expect(responseData.usedStorage).to.be.a('number');",
-									"    pm.expect(responseData.usedStorage).to.be.at.least(0, \"Value should be non-negative\");",
-									"});",
-									"",
-									"",
-									"pm.test(\"Max storage is greater than or equal to used storage\", function () {",
-									"    const responseData = pm.response.json();",
-									"",
-									"    pm.expect(responseData).to.be.an('object');",
-									"    pm.expect(responseData.maxStorage).to.exist.and.to.be.gte(responseData.usedStorage);",
-									"});",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/user/{{userID}}/storage",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"user",
-								"{{userID}}",
-								"storage"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Send a Ticket",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\n    \"userEmail\": \"{{email}}\",\n    \"subject\": \"Test subject\",\n    \"message\": \"Hey this is a test message\"\n\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/user/tickets",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"user",
-								"tickets"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Folder",
-			"item": [
-				{
-					"name": "Generate new empty folder",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response is a JSON object\", function () {",
-									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
-									"});",
-									"",
-									"pm.test(\"Response contains a non-empty ID\", function () {",
-									"    pm.expect(pm.response.json().id).to.not.be.empty;",
-									"    pm.environment.set(\"folderID\", pm.response.json().id);",
-									"});",
-									"",
-									"pm.test(\"Reponse contains a non-empty URL for the folder\", function () {",
-									"    pm.expect(pm.response.json().url).to.not.be.empty;",
-									"    pm.environment.set(\"folderURL\", pm.response.json.url)",
-									"});",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\n    \"folderName\": \"Tefdfdsfsdfsdfst\",\n    \"recipientsEmails\": [\"malhomme.nil@gmail.com\",\"thibaultbruhatpro@gmail.com\"],\n    \"message\":\"Guess who's the boss now oi ?\",\n    \"folderSize\": 46523,\n    \"fileCount\": 69\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/folder/",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Generate new temp folder",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response is a JSON object\", function () {",
-									"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
-									"});",
-									"",
-									"pm.test(\"Response contains a non-empty ID\", function () {",
-									"    pm.expect(pm.response.json().id).to.not.be.empty;",
-									"    pm.environment.set(\"tempFolderID\", pm.response.json().id);",
-									"});",
-									"",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n\n    \"folderName\": \"Test\",\n    \"recipientsEmails\": [\"malhomme.nil@gmail.com\",\"thibaultbruhatpro@gmail.com\"],\n    \"message\":\"Guess who's the boss now oi ?\",\n    \"folderSize\": 46523,\n    \"fileCount\": 69\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/folder/",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get a Folder object from the Folder ID",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains an id\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('id');",
-									"});",
-									"",
-									"pm.test(\"Response contains a fileEntityList\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
-									"});",
-									"",
-									"pm.test(\"Response contains a url\", function(){",
-									"    pm.expect(pm.response.json()).to.have.property('url')",
-									"    pm.environment.set(\"folderURL\", pm.response.json().url)",
-									"",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/folder/{{folderID}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								"{{folderID}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get a Folder object from the Folder URL",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains an id\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('id');",
-									"});",
-									"",
-									"pm.test(\"Response contains a fileEntityList\", function () {",
-									"    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
-									"});",
-									"",
-									"pm.test(\"Response contains a url\", function(){",
-									"    pm.expect(pm.response.json()).to.have.property('url')",
-									"    pm.environment.set(\"folderURL\", pm.response.json().url)",
-									"",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/folder/url/{{folderURL}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								"url",
-								"{{folderURL}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get all folders from userID",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains multiple objects or one\", function () {",
-									"    var response = pm.response.json();",
-									"    pm.expect(response).to.be.an('array');",
-									"    pm.expect(response.length).to.be.at.least(1);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/user/folders/{{userID}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"user",
-								"folders",
-								"{{userID}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Files",
-			"item": [
-				{
-					"name": "Upload files to database",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const response = pm.response.json();",
-									"",
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response contains folder and accessKey objects\", function () {",
-									"    var jsonData = response;",
-									"",
-									"    pm.expect(jsonData).to.have.property('folder');",
-									"    pm.expect(jsonData).to.have.property('accessKey');",
-									"});",
-									"",
-									"pm.test(\"The folder object has a non-empty fileEntityList\", function () {",
-									"    var fileEntityList = response.folder.fileEntityList;",
-									"",
-									"    pm.expect(fileEntityList).to.be.an('array').that.is.not.empty;",
-									"});",
-									"",
-									"pm.test(\"The folder object has an id\", function () {",
-									"    var folderId = response.folder.id;",
-									"",
-									"    pm.expect(folderId).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0);",
-									"});",
-									"",
-									"pm.test(\"Adding object value to environment for further testing\", function () {",
-									"    pm.environment.set(\"folderID\", response.folder.id);",
-									"    pm.environment.set(\"folderURL\", response.folder.url);",
-									"    pm.environment.set(\"accessKey\", response.accessKey);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": "./src/test/postman/testFile.txt"
-								},
-								{
-									"key": "files",
-									"type": "file",
-									"src": [],
-									"disabled": true
-								},
-								{
-									"key": "files",
-									"type": "file",
-									"src": [],
-									"disabled": true
-								}
-							]
-						},
-						"url": {
-							"raw": "{{baseURL}}/api/v1/file/{{folderID}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"file",
-								"{{folderID}}"
-							],
-							"query": [
-								{
-									"key": "folderURL",
-									"value": "coucou",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Download all file from folderURL",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response has content-type header of mime/application-octet\", function () {",
-									"pm.expect(pm.response.headers.get('content-type')).to.include('application/zip');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/folder/download/{{folderURL}}?accessKey={{accessKey}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								"download",
-								"{{folderURL}}"
-							],
-							"query": [
-								{
-									"key": "accessKey",
-									"value": "{{accessKey}}"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete a Folder",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/folder/{{tempFolderID}}",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"folder",
-								"{{tempFolderID}}"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Admin",
-			"item": [
-				{
-					"name": "Get all users",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/admin/users?page=0&size=10",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"users"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "0"
-								},
-								{
-									"key": "size",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get all tickets",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{authToken}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{baseURL}}/api/v1/admin/tickets?page=0&size=10",
-							"host": [
-								"{{baseURL}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"admin",
-								"tickets"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "0"
-								},
-								{
-									"key": "size",
-									"value": "10"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	]
+  "info": {
+    "_postman_id": "f32d7229-9e56-49b3-a619-86ddee57fadc",
+    "name": "TransferFlow API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "24752067",
+    "_collection_link": "https://dark-spaceship-572108.postman.co/workspace/TransferFlow-API~89eff9a8-d9b6-4b9a-ba31-72462ef67dd2/collection/24752067-f32d7229-9e56-49b3-a619-86ddee57fadc?action=share&creator=24752067&source=collection_link"
+  },
+  "item": [
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Delete User",
+          "item": [
+            {
+              "name": "Register a temp User into the Database",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      "var email = \"testtmpuser\" + Math.floor(Math.random() * 1500) + \"@example.com\";",
+                      "var password = \"password123\";",
+                      "var firstName = \"John\";",
+                      "var lastName = \"Doe\";",
+                      "",
+                      "    pm.environment.set(\"tempEmail\", email);",
+                      "",
+                      "    pm.environment.set(\"tempPassword\", password);",
+                      "    pm.environment.set(\"firstName\", firstName);",
+                      "    pm.environment.set(\"lastName\", lastName);"
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "",
+                      "    pm.test(\"Response status code is 200\", function () {",
+                      "        pm.expect(pm.response.code).to.equal(200);",
+                      "    });",
+                      "",
+                      "    pm.test(\"Response contains a token\", function () {",
+                      "        pm.expect(pm.response.json()).to.have.property('token').that.is.a('string');",
+                      "    });",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"firstName\": \"Nilq\",\n    \"lastName\": \"MALHOMMEq\",\n    \"email\": \"{{tempEmail}}\",\n    \"password\": \"{{tempPassword}}\"\n\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/auth/register",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Request  temp JWT token from the backend Copy",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Response status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains a token\", function () {",
+                      "    pm.expect(pm.response.json()).to.have.property('token');",
+                      "        pm.environment.set(\"tempAuthToken\", pm.response.json().token);",
+                      "",
+                      "});",
+                      "",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{tempEmail}}\",\n    \"password\": \"{{tempPassword}}\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/auth/authenticate",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "auth",
+                    "authenticate"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete a user",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Response status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{tempAuthToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseURL}}/api/v1/user/delete/{{tempEmail}}",
+                  "host": [
+                    "{{baseURL}}"
+                  ],
+                  "path": [
+                    "api",
+                    "v1",
+                    "user",
+                    "delete",
+                    "{{tempEmail}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Register a new User into the Database",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "",
+                  "    pm.test(\"Response status code is 200\", function () {",
+                  "        pm.expect(pm.response.code).to.equal(200);",
+                  "    });",
+                  "",
+                  "    pm.test(\"Response contains a token\", function () {",
+                  "        pm.expect(pm.response.json()).to.have.property('token').that.is.a('string');",
+                  "    });",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "var email = \"test\" + Math.floor(Math.random() * 10000) + \"@example.com\";",
+                  "var password = \"password123\";",
+                  "var firstName = \"John\";",
+                  "var lastName = \"Doe\";",
+                  "",
+                  "    pm.environment.set(\"email\", email);",
+                  "    pm.environment.set(\"password\", password);",
+                  "    pm.environment.set(\"firstName\", firstName);",
+                  "    pm.environment.set(\"lastName\", lastName);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"firstName\": \"Nilq\",\n    \"lastName\": \"MALHOMMEq\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/register",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request  JWT token from the backend",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a token\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('token');",
+                  "        pm.environment.set(\"authToken\", pm.response.json().token);",
+                  "",
+                  "});",
+                  "",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/authenticate",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "authenticate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a token\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('token');",
+                  "        pm.environment.set(\"authToken\", pm.response.json().token);",
+                  "",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\n    \"firstName\": \"test\",\n    \"lastName\": \"test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/user/{{email}}?oldPassword={{password}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "{{email}}"
+              ],
+              "query": [
+                {
+                  "key": "oldPassword",
+                  "value": "{{password}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Data from auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check if the response code is 200",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Store the id in the environment variable",
+                  "var responseBody = pm.response.json();",
+                  "var userId = responseBody.id;",
+                  "pm.environment.set(\"userID\", userId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/user",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login using Google SSO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a token\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('token');",
+                  "        //pm.environment.set(\"authToken\", pm.response.json().token);",
+                  "",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{   \n    \"sub\":\"117151916294514197463\",\n    \"email\":\"thibaultbruhatpro@gmail.com\",\n    \"name\":\"Thibault Bruhat\",\n    \"azp\": \"979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com\",\n    \"aud\": \"979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com\",\n    \"jti\": \"545aff9cf6ba429a5c254e8ca254f02d7b6d3969\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/auth/google",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "google"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Storage Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Test to check if the response has the correct content type",
+                  "pm.test(\"Response has the correct content type\", function () {",
+                  "    pm.response.to.have.header('Content-Type', 'application/json');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the correct content type\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Max storage is a non-negative integer\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "",
+                  "    pm.expect(responseData.maxStorage).to.be.a('number');",
+                  "    pm.expect(responseData.maxStorage).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Used storage is a non-negative integer\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "",
+                  "    pm.expect(responseData.usedStorage).to.be.a('number');",
+                  "    pm.expect(responseData.usedStorage).to.be.at.least(0, \"Value should be non-negative\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Max storage is greater than or equal to used storage\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.maxStorage).to.exist.and.to.be.gte(responseData.usedStorage);",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/user/{{userID}}/storage",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "{{userID}}",
+                "storage"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send a Ticket",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\n    \"userEmail\": \"{{email}}\",\n    \"subject\": \"Test subject\",\n    \"message\": \"Hey this is a test message\"\n\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/user/tickets",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "tickets"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Folder",
+      "item": [
+        {
+          "name": "Generate new empty folder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is a JSON object\", function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a non-empty ID\", function () {",
+                  "    pm.expect(pm.response.json().id).to.not.be.empty;",
+                  "    pm.environment.set(\"folderID\", pm.response.json().id);",
+                  "});",
+                  "",
+                  "pm.test(\"Reponse contains a non-empty URL for the folder\", function () {",
+                  "    pm.expect(pm.response.json().url).to.not.be.empty;",
+                  "    pm.environment.set(\"folderURL\", pm.response.json.url)",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\n    \"folderName\": \"Tefdfdsfsdfsdfst\",\n    \"recipientsEmails\": [\"malhomme.nil@gmail.com\",\"thibaultbruhatpro@gmail.com\"],\n    \"message\":\"Guess who's the boss now oi ?\",\n    \"folderSize\": 46523,\n    \"fileCount\": 69\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/folder/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "folder",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate new temp folder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is a JSON object\", function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a non-empty ID\", function () {",
+                  "    pm.expect(pm.response.json().id).to.not.be.empty;",
+                  "    pm.environment.set(\"tempFolderID\", pm.response.json().id);",
+                  "});",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n\n    \"folderName\": \"Test\",\n    \"recipientsEmails\": [\"malhomme.nil@gmail.com\",\"thibaultbruhatpro@gmail.com\"],\n    \"message\":\"Guess who's the boss now oi ?\",\n    \"folderSize\": 46523,\n    \"fileCount\": 69\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/folder/",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "folder",
+                ""
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get a Folder object from the Folder ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains an id\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('id');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a fileEntityList\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a url\", function(){",
+                  "    pm.expect(pm.response.json()).to.have.property('url')",
+                  "    pm.environment.set(\"folderURL\", pm.response.json().url)",
+                  "",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/folder/{{folderID}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "folder",
+                "{{folderID}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get a Folder object from the Folder URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains an id\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('id');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a fileEntityList\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('fileEntityList');",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains a url\", function(){",
+                  "    pm.expect(pm.response.json()).to.have.property('url')",
+                  "    pm.environment.set(\"folderURL\", pm.response.json().url)",
+                  "",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/folder/url/{{folderURL}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "folder",
+                "url",
+                "{{folderURL}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all folders from userID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains multiple objects or one\", function () {",
+                  "    var response = pm.response.json();",
+                  "    pm.expect(response).to.be.an('array');",
+                  "    pm.expect(response.length).to.be.at.least(1);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/user/folders/{{userID}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "user",
+                "folders",
+                "{{userID}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Files",
+      "item": [
+        {
+          "name": "Upload files to database",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains folder and accessKey objects\", function () {",
+                  "    var jsonData = response;",
+                  "",
+                  "    pm.expect(jsonData).to.have.property('folder');",
+                  "    pm.expect(jsonData).to.have.property('accessKey');",
+                  "});",
+                  "",
+                  "pm.test(\"The folder object has a non-empty fileEntityList\", function () {",
+                  "    var fileEntityList = response.folder.fileEntityList;",
+                  "",
+                  "    pm.expect(fileEntityList).to.be.an('array').that.is.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"The folder object has an id\", function () {",
+                  "    var folderId = response.folder.id;",
+                  "",
+                  "    pm.expect(folderId).to.exist.and.to.be.a('string').and.to.have.lengthOf.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Adding object value to environment for further testing\", function () {",
+                  "    pm.environment.set(\"folderID\", response.folder.id);",
+                  "    pm.environment.set(\"folderURL\", response.folder.url);",
+                  "    pm.environment.set(\"accessKey\", response.accessKey);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "./src/test/postman/testFile.txt"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseURL}}/api/v1/file/{{folderID}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "file",
+                "{{folderID}}"
+              ],
+              "query": [
+                {
+                  "key": "folderURL",
+                  "value": "coucou",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download all file from folderURL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has content-type header of mime/application-octet\", function () {",
+                  "pm.expect(pm.response.headers.get('content-type')).to.include('application/zip');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/folder/download/{{folderURL}}?accessKey={{accessKey}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "folder",
+                "download",
+                "{{folderURL}}"
+              ],
+              "query": [
+                {
+                  "key": "accessKey",
+                  "value": "{{accessKey}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a Folder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/folder/{{tempFolderID}}",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "folder",
+                "{{tempFolderID}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get all users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/admin/users?page=0&size=10",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all tickets",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{authToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseURL}}/api/v1/admin/tickets?page=0&size=10",
+              "host": [
+                "{{baseURL}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "tickets"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
 }

@@ -34,7 +34,7 @@ public class VerificationController {
     }
 
     @Transactional
-    @PostMapping("/delete/{userID}/{deletionKey}")
+    @DeleteMapping("/delete/{userID}/{deletionKey}")
     public ResponseEntity<String> verifyUserAccountDeletion(@PathVariable UUID userID, @PathVariable String deletionKey) {
         if (deletionKey.isEmpty())
             throw new InvalidTokenException();
