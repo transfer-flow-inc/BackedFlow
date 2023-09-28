@@ -35,13 +35,12 @@ public class VerificationController {
 
     @Transactional
     @DeleteMapping("/delete/{userID}/{deletionKey}")
-    public ResponseEntity<String> verifyUserAccountDeletion(@PathVariable UUID userID, @PathVariable String deletionKey) {
+    public void verifyUserAccountDeletion(@PathVariable UUID userID, @PathVariable String deletionKey) {
         if (deletionKey.isEmpty())
             throw new InvalidTokenException();
         if (userService.isDeletionKeyValid(userID, deletionKey)) {
             userService.deleteUserByID(userID);
-            return ResponseEntity.ok("Account deleted");
         }
-        return ResponseEntity.badRequest().body("Invalid deletion key");
+        throw new InvalidTokenException();
     }
 }
