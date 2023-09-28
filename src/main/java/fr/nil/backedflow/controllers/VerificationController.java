@@ -41,6 +41,5 @@ public class VerificationController {
         if (userService.isDeletionKeyValid(userID, deletionKey)) {
             userService.deleteUserByID(userID);
         }
-        throw new InvalidTokenException();
     }
 }
