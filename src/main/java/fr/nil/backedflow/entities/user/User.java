@@ -57,6 +57,9 @@ public class User implements UserDetails {
     @OneToOne(cascade = CascadeType.ALL)
     private UserVerification userVerification;
 
+
+    private String deletionKey;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 

@@ -24,7 +24,7 @@ public class UserVerificationService {
     private final UserVerificationRepository userVerificationRepository;
     private final UserRepository userRepository;
 
-    public boolean checkVerificationToken(String verificationToken) {
+    public boolean checkAccountVerificationToken(String verificationToken) {
 
         log.debug("Got a verification request with token : " + verificationToken);
         try {

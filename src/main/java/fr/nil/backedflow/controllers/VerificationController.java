@@ -4,13 +4,14 @@ package fr.nil.backedflow.controllers;
 import fr.nil.backedflow.exceptions.InvalidTokenException;
 import fr.nil.backedflow.requests.AccountVerificationRequest;
 import fr.nil.backedflow.responses.AccountVerificationResponse;
+import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VerificationController {
 
     private final UserVerificationService userVerificationService;
+    private final UserService userService;
 
 
     @PostMapping()
@@ -25,10 +27,21 @@ public class VerificationController {
         if (token.getToken().isEmpty())
             throw new InvalidTokenException();
 
-        if (userVerificationService.checkVerificationToken(token.getToken()))
+        if (userVerificationService.checkAccountVerificationToken(token.getToken()))
             return ResponseEntity.ok(AccountVerificationResponse.builder().isAccountVerified(true).build());
 
         throw new InvalidTokenException();
     }
 
+    @Transactional
+    @PostMapping("/delete/{userID}/{deletionKey}")
+    public ResponseEntity<String> verifyUserAccountDeletion(@PathVariable UUID userID, @PathVariable String deletionKey) {
+        if (deletionKey.isEmpty())
+            throw new InvalidTokenException();
+        if (userService.isDeletionKeyValid(userID, deletionKey)) {
+            userService.deleteUserByID(userID);
+            return ResponseEntity.ok("Account deleted");
+        }
+        return ResponseEntity.badRequest().body("Invalid deletion key");
+    }
 }

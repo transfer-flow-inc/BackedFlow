@@ -4,7 +4,6 @@ import fr.nil.backedflow.entities.FileEntity;
 import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.Role;
 import fr.nil.backedflow.entities.user.User;
-import fr.nil.backedflow.event.TransferNotificationEvent;
 import fr.nil.backedflow.exceptions.*;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.repositories.FolderRepository;
@@ -12,6 +11,7 @@ import fr.nil.backedflow.repositories.UserRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.responses.FolderResponse;
 import fr.nil.backedflow.services.JWTService;
+import fr.nil.backedflow.services.KafkaService;
 import fr.nil.backedflow.services.MeterService;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,7 +52,7 @@ public class FolderService {
     private final Logger logger = LoggerFactory.getLogger(FolderService.class);
     private final UserService userService;
     private final MeterService meterService;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaService kafkaService;
 
 
     @Value("${TRANSFERFLOW_FILE_EXPIRY_DATE:7}")
@@ -143,15 +142,7 @@ public class FolderService {
         userService.addFolderToFolderList(user, folder);
 
         logger.debug("Sending notification mail to all recipients");
-        kafkaTemplate.send("transferNotificationTopic", TransferNotificationEvent.builder()
-                .senderName(user.getFirstName() + " " + user.getLastName())
-                .folderMessage(creationRequest.getMessage())
-                .folderSize(folder.getFolderSize())
-                .downloadURL("https://transfer-flow.studio/telechargement/" + folder.getUrl() + "/" + folder.getAccessKey())
-                .fileCount(folder.getFileCount())
-                .folderMessage(!folder.getMessage().isEmpty() ? folder.getMessage() : "Pas de message joint au transfer")
-                .recipientsEmails(folder.getRecipientsEmails())
-                .build());
+        kafkaService.sendTransferNotification(user, folder);
 
         return folder;
     }

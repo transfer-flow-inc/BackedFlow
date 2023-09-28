@@ -10,6 +10,7 @@ import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.exceptions.UnauthorizedUserAccessException;
 import fr.nil.backedflow.requests.TicketMessageRequest;
 import fr.nil.backedflow.responses.UserStorageResponse;
+import fr.nil.backedflow.services.KafkaService;
 import fr.nil.backedflow.services.UserService;
 import fr.nil.backedflow.services.UserTicketService;
 import fr.nil.backedflow.services.folder.FolderService;
@@ -20,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +34,7 @@ public class UserController {
     private final UserService userService;
     private final FolderService folderService;
     private final UserTicketService userTicketService;
+    private final KafkaService kafkaService;
   
     @PatchMapping("/{email}")
     public ResponseEntity<AuthenticationResponse> updateUserById(@PathVariable(value = "email", required = true) String email, @RequestParam(value = "oldPassword", required = false) String oldPassword, @RequestBody UserUpdateRequest userUpdateRequest, Authentication authentication) throws PasswordMismatchException {
@@ -58,26 +59,23 @@ public class UserController {
 
 
     @PostMapping("/tickets")
-    public ResponseEntity<UserTicket> handleTicketSend(@RequestBody TicketMessageRequest ticketSendRequest, HttpServletRequest request) {
+    public ResponseEntity<UserTicket> handleTicketSend(@RequestBody TicketMessageRequest ticketSendRequest) {
         return ResponseEntity.ok(userTicketService.handleTicketRequest(ticketSendRequest));
 
     }
   
     @DeleteMapping("/{email}")
-    @Transactional
     public void deleteUserByEmail(@PathVariable(value = "email", required = true) String email, Authentication authentication) {
         String userEmail = authentication.getName();
         if (logger.isDebugEnabled())
             logger.debug(String.format("User with the email : %s  has requested the account deletion of the account : ", email));
-        if (authentication.getAuthorities().contains(new SimpleGrantedAuthority("ADMIN")))
-            userService.deleteUserByEmail(email);
 
         if (!userEmail.equals(email))
-            throw new UnauthorizedUserAccessException("You are not authorized to delete this account");
+            throw new UnauthorizedUserAccessException("You are not authorized to request the delete of this account");
 
-        userService.deleteUserByEmail(email);
+        kafkaService.sendDeletionNotificationEvent(userService.getUserByMail(userEmail));
         if (logger.isDebugEnabled())
-            logger.debug(String.format("The account with the email : %s has been deleted.", email));
+            logger.debug(String.format("The account with the email : %s has been sent a deletion notification.", email));
     }
 
     @GetMapping("/{userID}/storage")

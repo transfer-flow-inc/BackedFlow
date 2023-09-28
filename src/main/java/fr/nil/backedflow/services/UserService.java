@@ -7,6 +7,7 @@ import fr.nil.backedflow.entities.Folder;
 import fr.nil.backedflow.entities.user.User;
 import fr.nil.backedflow.entities.user.UserVerification;
 import fr.nil.backedflow.event.AccountCreationEvent;
+import fr.nil.backedflow.event.DeletionNotificationEvent;
 import fr.nil.backedflow.exceptions.PasswordMismatchException;
 import fr.nil.backedflow.manager.StorageManager;
 import fr.nil.backedflow.repositories.*;
@@ -17,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class UserService {
+    private final UserTicketRepository userTicketRepository;
     private final PlanRepository planRepository;
     private final FileEntityRepository fileEntityRepository;
     private final FolderRepository folderRepository;
@@ -69,7 +72,6 @@ public class UserService {
     public boolean canUserUpload(User user) {
         return user.getIsAccountVerified() && storageManager.hasEnoughStorageSize(user);
     }
-
 
     public AuthenticationResponse updateUser(String mail, UserUpdateRequest updateRequest, String oldPassword) throws PasswordMismatchException {
         Optional<User> optionalUser = userRepository.findByMail(mail);
@@ -127,24 +129,38 @@ public class UserService {
     }
 
 
+    public boolean isDeletionKeyValid(UUID id, String deletionKey) {
+        return userRepository.findById(id).orElseThrow().getDeletionKey().equals(deletionKey);
+    }
+
+
+    public void deleteUserByID(UUID id) {
+        deleteUserData(getUserById(id));
+    }
+
     public void deleteUserByEmail(String email) {
 
-        User user = getUserByMail(email);
+        deleteUserData(getUserByMail(email));
+    }
+
+    public void deleteUserData(User user) {
 
         if (folderRepository.findAllByFolderOwner(user.getId()).isPresent()) {
             if (log.isDebugEnabled())
                 log.debug(String.format("Deleting all files in folders for the user %s", user.getId()));
 
             folderRepository.findAllByFolderOwner(user.getId()).get().forEach(fileService::deleteFilesFromUserStorage);
-            folderRepository.deleteAllByFolderOwnerMail(email);
+            folderRepository.deleteAllByFolderOwnerMail(user.getMail());
         }
 
         entityManager.flush();
+        userTicketRepository.deleteAllByUserMail(user.getMail());
         planRepository.delete(user.getPlan());
-        userRepository.deleteByMail(email);
-        userVerificationRepository.deleteByUserMail(email);
+        userRepository.deleteByMail(user.getMail());
+        userVerificationRepository.deleteByUserMail(user.getMail());
 
     }
+
 
 
     public UserStorageResponse getUserStorageInfo(String userID) {
@@ -158,19 +174,26 @@ public class UserService {
 
     }
 
-    public float getUserStorageUsagePercentage(String userID) {
-        User user = getUserById(UUID.fromString(userID));
-
-        float usedStorage = storageManager.getFormattedUserStorageSize(user);
-        float maxStorage = user.getPlan().getMaxUploadCapacity();
-
-        return (usedStorage / maxStorage) * 100; // Calculate the percentage
-    }
-
-
     public User addFolderToFolderList(User user, Folder folder) {
         user.getUserFolders().add(folder);
         return userRepository.save(user);
     }
 
+    public void sendVerificationDeleteRequest(Authentication authentication) {
+        String userEmail = authentication.getName();
+        User user = userRepository.findByMail(userEmail).orElseThrow();
+        if (log.isDebugEnabled())
+            log.debug(String.format("User with the email : %s  has requested the account deletion of the account : ", userEmail));
+
+        UserVerification userVerification = userVerificationService.generateVerificationToken(userRepository.findByMail(userEmail).orElseThrow());
+        kafkaTemplate.send("deletionNotificationTopic", DeletionNotificationEvent.builder()
+                .userID(user.getId())
+                .userName(user.getFirstName() + " " + user.getLastName())
+                .mail(user.getMail())
+                .validationToken(userVerification.getVerificationToken())
+                .build());
+
+        if (log.isDebugEnabled())
+            log.debug(String.format("The account with the email : %s has been deleted.", userEmail));
+    }
 }
