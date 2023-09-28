@@ -165,10 +165,10 @@
 										}
 									]
 								},
-								"method": "DELETE",
+								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{baseURL}}/api/v1/user/{{tempEmail}}",
+									"raw": "{{baseURL}}/api/v1/user/delete/{{tempEmail}}",
 									"host": [
 										"{{baseURL}}"
 									],

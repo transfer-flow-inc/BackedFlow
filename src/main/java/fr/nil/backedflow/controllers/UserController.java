@@ -63,8 +63,8 @@ public class UserController {
         return ResponseEntity.ok(userTicketService.handleTicketRequest(ticketSendRequest));
 
     }
-  
-    @DeleteMapping("/{email}")
+
+    @PostMapping("/delete/{email}")
     public void deleteUserByEmail(@PathVariable(value = "email", required = true) String email, Authentication authentication) {
         String userEmail = authentication.getName();
         if (logger.isDebugEnabled())
