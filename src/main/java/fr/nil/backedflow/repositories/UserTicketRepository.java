@@ -5,4 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserTicketRepository extends JpaRepository<UserTicket, Integer> {
 
+
+    void deleteAllByUserMail(String mail);
+
 }

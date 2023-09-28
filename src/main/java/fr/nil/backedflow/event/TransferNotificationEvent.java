@@ -19,4 +19,5 @@ public class TransferNotificationEvent {
     private String folderMessage;
     private String downloadURL;
     private List<String> recipientsEmails;
+    private String folderName;
 }

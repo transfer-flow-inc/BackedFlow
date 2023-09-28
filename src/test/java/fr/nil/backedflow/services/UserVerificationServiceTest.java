@@ -75,7 +75,7 @@ class UserVerificationServiceTest {
         when(userVerificationRepository.findUserVerificationByVerificationToken(verificationToken))
                 .thenReturn(Optional.empty());
 
-        boolean result = userVerificationService.checkVerificationToken(verificationToken);
+        boolean result = userVerificationService.checkAccountVerificationToken(verificationToken);
 
         assertFalse(result);
         verify(userVerificationRepository, never()).deleteById(any());
@@ -93,7 +93,7 @@ class UserVerificationServiceTest {
         when(user.getId()).thenReturn(UUID.randomUUID());
         when(userRepository.findUserById(user.getId())).thenReturn(Optional.of(user));
 
-        boolean result = userVerificationService.checkVerificationToken(verificationToken);
+        boolean result = userVerificationService.checkAccountVerificationToken(verificationToken);
 
         assertTrue(result);
         verify(userVerificationRepository, times(1)).deleteById(userVerification.getId());

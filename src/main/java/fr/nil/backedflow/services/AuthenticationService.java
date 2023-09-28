@@ -10,17 +10,15 @@
     import fr.nil.backedflow.entities.user.Role;
     import fr.nil.backedflow.entities.user.User;
     import fr.nil.backedflow.entities.user.UserVerification;
-    import fr.nil.backedflow.event.AccountCreationEvent;
     import fr.nil.backedflow.exceptions.UnverifiedLoginException;
     import fr.nil.backedflow.repositories.PlanRepository;
     import fr.nil.backedflow.repositories.UserRepository;
-    import io.micrometer.core.instrument.MeterRegistry;
+    import fr.nil.backedflow.services.utils.AccessKeyGenerator;
     import lombok.RequiredArgsConstructor;
     import lombok.extern.slf4j.Slf4j;
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.core.env.Environment;
     import org.springframework.core.env.Profiles;
-    import org.springframework.kafka.core.KafkaTemplate;
     import org.springframework.security.authentication.AuthenticationManager;
     import org.springframework.security.authentication.BadCredentialsException;
     import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,11 +41,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserVerificationService userVerificationService;
     private final PlanRepository planRepository;
-    private final MeterRegistry meterRegistry;
         private final MeterService meterService;
-
-        private final KafkaTemplate<String, Object> kafkaTemplate;
-
+        private final KafkaService kafkaService;
     @Value("${transferflow.auth.sso.google.client.id:979451349689-s05pddc23jr0m0769u04ir93vj5t9mp0.apps.googleusercontent.com}")
     private String googleSSOClientID;
         private final Environment env;
@@ -69,6 +64,7 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .isAccountVerified(false)
+                .deletionKey(AccessKeyGenerator.generateAccessKey(128))
                 .avatar("https://api.transfer-flow.studio/assets/logo_dark.png")
                 .build();
 
@@ -81,12 +77,7 @@ public class AuthenticationService {
         meterService.incrementUserRegistrationCounter();
         UserVerification userVerification = userVerificationService.generateVerificationToken(user);
 
-        kafkaTemplate.send("accountCreationTopic", AccountCreationEvent.builder()
-                        .userID(user.getId().toString())
-                        .userName(user.getFirstName() + " " + user.getLastName())
-                        .email(user.getMail())
-                .validationToken(userVerification.getVerificationToken())
-                .build());
+        kafkaService.sendAccountCreationEvent(user, userVerification.getVerificationToken());
 
         return AuthenticationResponse.builder().token(jwtToken).build();
     }
@@ -142,6 +133,7 @@ public class AuthenticationService {
                 .password(passwordEncoder.encode(request.getJti()))
                 .isAccountVerified(true)
                 .role(Role.USER)
+                .deletionKey(AccessKeyGenerator.generateAccessKey(128))
                 .avatar(request.getPicture())
                 .plan(planRepository.save(PlanType.FREE.toPlan()))
                 .build();
