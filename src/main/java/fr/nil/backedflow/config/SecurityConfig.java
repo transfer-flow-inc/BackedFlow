@@ -47,7 +47,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://azure.transfer-flow.studio", "http://api.transfer-flow.studio", "https://api.transfer-flow.studio", "http://transfer-flow.studio", "https://transfer-flow.studio")); // allow all origins
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://api-azure.transfer-flow.studio", "https://azure.transfer-flow.studio", "http://api.transfer-flow.studio", "https://api.transfer-flow.studio", "http://transfer-flow.studio", "https://transfer-flow.studio")); // allow all origins
         configuration.setAllowedMethods(Arrays.asList("GET", "PATCH", "OPTIONS", "POST", "PUT", "DELETE", "HEAD")); // allow all HTTP methods
         configuration.setAllowedHeaders(Arrays.asList("*")); // allow all headers
         configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers", "Access-Control-Max-Age")); // expose additional headers

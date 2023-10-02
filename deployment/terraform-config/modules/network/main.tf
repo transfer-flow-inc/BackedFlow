@@ -57,12 +57,27 @@ resource "azurerm_application_gateway" "example" {
   location            = var.location
   resource_group_name = var.resource_group_name
 
+
+  trusted_client_certificate {
+    data = filebase64("./certificates/bundle.pem")
+    name = "tf-bundle-cert"
+  }
+
   ssl_certificate {
     name     = "tf-ssl-cert"
     data     = filebase64("./certificates/certificate.pfx")
     password = var.certificate_password  # the password you set when creating the PFX file
   }
 
+
+  ssl_profile {
+    name = "tf-ssl-profile"
+    ssl_policy {
+      policy_type = "Predefined"
+      policy_name = "AppGwSslPolicy20170401S"
+    }
+    trusted_client_certificate_names = ["tf-bundle-cert"]
+  }
   sku {
     name     = "Standard_v2"
     tier     = "Standard_v2"
@@ -102,10 +117,10 @@ resource "azurerm_application_gateway" "example" {
   http_listener {
     name                           = "myHttpListener"
     frontend_ip_configuration_name = "myFrontendIpConfig"
-    frontend_port_name             = "myFrontendPort"
+    frontend_port_name             = "https"
     protocol                       = "Https"
     ssl_certificate_name           = "tf-ssl-cert"
-    host_names                     = ["azure.api.transfer-flow.studio"]
+    host_names                     = ["api-azure.transfer-flow.studio"]
   }
 
   request_routing_rule {

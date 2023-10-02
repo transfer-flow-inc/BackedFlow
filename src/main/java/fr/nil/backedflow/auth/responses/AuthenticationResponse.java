@@ -19,5 +19,4 @@ public class AuthenticationResponse {
 
 private String token;
 
-
 }

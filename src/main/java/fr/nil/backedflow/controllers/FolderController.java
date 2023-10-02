@@ -8,7 +8,6 @@ import fr.nil.backedflow.repositories.FolderRepository;
 import fr.nil.backedflow.requests.FolderCreationRequest;
 import fr.nil.backedflow.services.MeterService;
 import fr.nil.backedflow.services.files.FileEncryptorDecryptor;
-import fr.nil.backedflow.services.files.FileService;
 import fr.nil.backedflow.services.folder.FolderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -18,8 +17,6 @@ import net.lingala.zip4j.io.outputstream.ZipOutputStream;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import org.apache.commons.io.IOUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +26,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -44,7 +40,6 @@ import java.util.concurrent.Future;
 public class FolderController {
 
     private final FolderRepository folderRepository;
-    private final FileService fileService;
     private final FolderService folderService;
     private final MeterService meterService;
     private final FileEncryptorDecryptor fileEncryptorDecryptor;
@@ -61,9 +56,7 @@ public class FolderController {
 
     @DeleteMapping("/{id}")
     public void deleteFolderFromID(@PathVariable(value = "id") String id, HttpServletRequest request) {
-
         folderService.handleDeleteFolder(id, request);
-
     }
 
 
@@ -81,7 +74,6 @@ public class FolderController {
 
     @GetMapping("/download/{folderURL}")
     public void downloadFilesAsync(HttpServletResponse response, @PathVariable("folderURL") String folderURL, @RequestParam("accessKey") String accessKey) throws IOException {
-        // Your existing code here...
         if (accessKey.isEmpty())
             throw new InvalidTokenException();
         if (!folderRepository.existsByUrl(folderURL))
@@ -91,7 +83,6 @@ public class FolderController {
         if (!accessKey.equals(folder.getAccessKey()))
             throw new InvalidTokenException();
 
-        // Set the headers
         response.setContentType("application/zip");
         response.setStatus(HttpServletResponse.SC_OK);
         response.addHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"files.zip\"");
@@ -121,6 +112,8 @@ public class FolderController {
                     zipOut.closeEntry();
                 }
             }
+            meterService.incrementFileDownloadCounter();
+            meterService.updateDownloadFileSizeGauge(folder.getFolderSize());
         } catch (InterruptedException | ExecutionException e) {
             log.error(e.getMessage());
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -129,22 +122,4 @@ public class FolderController {
         }
     }
 
-
-    @Profile("testing")
-    @RestController
-    @RequiredArgsConstructor
-    @RequestMapping("/api/v1/test/")
-    public static class RandomEndpointController {
-
-        @Autowired
-        private FolderRepository folderRepository;
-
-        @GetMapping("/folder/random")
-        public ResponseEntity<Folder> getRandomFolder() {
-            // Retrieve a random folder entity from the database
-            Optional<Folder> randomFolder = folderRepository.getRandomFolder();
-
-            return randomFolder.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-        }
-    }
 }
