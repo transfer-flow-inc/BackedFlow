@@ -17,10 +17,13 @@ import java.util.Map;
 public class KafkaProducerConfig {
     @Value(value = "${spring.kafka.bootstrap-servers}")
     private String bootstrapAddress;
+    @Value(value = "${spring.kafka.properties.sasl.jaas.config}")
+    private String saslJaasConfig;
 
     @Bean
     public ProducerFactory<String, Object> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
+        System.out.println(saslJaasConfig);
         configProps.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 bootstrapAddress);
@@ -30,6 +33,12 @@ public class KafkaProducerConfig {
         configProps.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class);
+
+        if (bootstrapAddress.contains("windows")) {
+            configProps.put("sasl.jaas.config", saslJaasConfig);
+            configProps.put("sasl.mechanism", "PLAIN");
+            configProps.put("security.protocol", "SASL_SSL");
+        }
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
